@@ -1,0 +1,6 @@
+@Biblio_HostAddress = http://localhost:5228
+
+GET {{Biblio_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
