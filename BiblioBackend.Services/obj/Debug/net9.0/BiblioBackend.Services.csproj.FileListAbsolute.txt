@@ -1,0 +1,17 @@
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/bin/Debug/net9.0/BiblioBackend.Services.deps.json
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/bin/Debug/net9.0/BiblioBackend.Services.runtimeconfig.json
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/bin/Debug/net9.0/BiblioBackend.Services.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/bin/Debug/net9.0/BiblioBackend.Services.pdb
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/bin/Debug/net9.0/BiblioBackend.DataContext.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/bin/Debug/net9.0/BiblioBackend.DataContext.pdb
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.csproj.AssemblyReference.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.GeneratedMSBuildEditorConfig.editorconfig
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.AssemblyInfoInputs.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.AssemblyInfo.cs
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.csproj.CoreCompileInputs.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBa.70D9C856.Up2Date
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/refint/BiblioBackend.Services.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.pdb
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/BiblioBackend.Services.genruntimeconfig.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/Debug/net9.0/ref/BiblioBackend.Services.dll

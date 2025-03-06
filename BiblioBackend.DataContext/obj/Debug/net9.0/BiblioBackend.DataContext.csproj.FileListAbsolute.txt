@@ -1,0 +1,14 @@
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/bin/Debug/net9.0/BiblioBackend.DataContext.deps.json
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/bin/Debug/net9.0/BiblioBackend.DataContext.runtimeconfig.json
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/bin/Debug/net9.0/BiblioBackend.DataContext.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/bin/Debug/net9.0/BiblioBackend.DataContext.pdb
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.csproj.AssemblyReference.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.GeneratedMSBuildEditorConfig.editorconfig
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.AssemblyInfoInputs.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.AssemblyInfo.cs
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.csproj.CoreCompileInputs.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/refint/BiblioBackend.DataContext.dll
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.pdb
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/BiblioBackend.DataContext.genruntimeconfig.cache
+/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/obj/Debug/net9.0/ref/BiblioBackend.DataContext.dll

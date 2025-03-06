@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiblioBackend", "BiblioBackend.csproj", "{3F8A92B7-94C6-4D80-8F30-4613724E757D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiblioBackend.DataContext", "BiblioBackend.DataContext\BiblioBackend.DataContext.csproj", "{215A274C-E4F9-4067-A09C-3C8F71C0E347}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiblioBackend.Services", "BiblioBackend.Services\BiblioBackend.Services.csproj", "{56C0820C-FA42-42BE-876E-C43DC327C885}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F8A92B7-94C6-4D80-8F30-4613724E757D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F8A92B7-94C6-4D80-8F30-4613724E757D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F8A92B7-94C6-4D80-8F30-4613724E757D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F8A92B7-94C6-4D80-8F30-4613724E757D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{215A274C-E4F9-4067-A09C-3C8F71C0E347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{215A274C-E4F9-4067-A09C-3C8F71C0E347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{215A274C-E4F9-4067-A09C-3C8F71C0E347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{215A274C-E4F9-4067-A09C-3C8F71C0E347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56C0820C-FA42-42BE-876E-C43DC327C885}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56C0820C-FA42-42BE-876E-C43DC327C885}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56C0820C-FA42-42BE-876E-C43DC327C885}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56C0820C-FA42-42BE-876E-C43DC327C885}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
