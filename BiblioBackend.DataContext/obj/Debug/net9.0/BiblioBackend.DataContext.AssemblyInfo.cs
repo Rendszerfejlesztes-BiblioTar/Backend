@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BiblioBackend.DataContext")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04ac831c53a22a2bab8beab344890fe4b16c15d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c12a245a713c6d3dcc441865dfa5ed0724cbffdd")]
 [assembly: System.Reflection.AssemblyProductAttribute("BiblioBackend.DataContext")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BiblioBackend.DataContext")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

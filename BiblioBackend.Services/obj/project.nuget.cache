@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "P+OcVY5nrRw=",
+  "dgSpecHash": "jxmRjd6XAvg=",
   "success": true,
-  "projectFilePath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/BiblioBackend.Services.csproj",
+  "projectFilePath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend.Services/BiblioBackend.Services.csproj",
   "expectedPackageFiles": [
     "/home/linux/.nuget/packages/azure.core/1.38.0/azure.core.1.38.0.nupkg.sha512",
     "/home/linux/.nuget/packages/azure.identity/1.11.4/azure.identity.1.11.4.nupkg.sha512",

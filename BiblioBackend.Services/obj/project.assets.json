@@ -5159,11 +5159,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/BiblioBackend.Services.csproj",
+      "projectUniqueName": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend.Services/BiblioBackend.Services.csproj",
       "projectName": "BiblioBackend.Services",
-      "projectPath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/BiblioBackend.Services.csproj",
+      "projectPath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend.Services/BiblioBackend.Services.csproj",
       "packagesPath": "/home/linux/.nuget/packages/",
-      "outputPath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.Services/obj/",
+      "outputPath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend.Services/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/linux/.nuget/NuGet/NuGet.Config"
@@ -5180,8 +5180,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/BiblioBackend.DataContext.csproj": {
-              "projectPath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend/BiblioBackend.DataContext/BiblioBackend.DataContext.csproj"
+            "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend.DataContext/BiblioBackend.DataContext.csproj": {
+              "projectPath": "/home/linux/School/Rendszerfejlesztés/Backend/BiblioBackend.DataContext/BiblioBackend.DataContext.csproj"
             }
           }
         }
@@ -5239,7 +5239,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/9.0.102/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/9.0.103/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

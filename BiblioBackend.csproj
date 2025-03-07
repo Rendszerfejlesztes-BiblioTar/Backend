@@ -28,8 +28,4 @@
       <ProjectReference Include="BiblioBackend.Services\BiblioBackend.Services.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
-
 </Project>
