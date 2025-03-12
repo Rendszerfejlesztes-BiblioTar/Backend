@@ -18,7 +18,7 @@ public class User
 
     public PrivilegeLevel Privilege { get; set; }
 
-    public ICollection<Reservation> Reservations { get; set; }
+    public List<Reservation> Reservations { get; set; }
     
-    public ICollection<LoanHistory> LoanHistories { get; set; }
+    public List<LoanHistory> LoanHistories { get; set; }
 }

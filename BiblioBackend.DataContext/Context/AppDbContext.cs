@@ -15,15 +15,19 @@ public class AppDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            // Muszály egy külön db connection string, nincs windows auth linuxon
-            connectionString = "Server=localhost;Initial Catalog=Biblio;User Id=SA;Password=Database1234;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;";
-        }
-        else
-        {
-            connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
-        }
+        //if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        //{
+        //    // Muszály egy külön db connection string, nincs windows auth linuxon
+        //    connectionString = "Server=localhost;Initial Catalog=Biblio;User Id=SA;Password=Database1234;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;";
+        //}
+        //else
+        //{
+        //    connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
+        //}
+
+    
+     connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
+        
 
         optionsBuilder.UseSqlServer(connectionString);
     }
