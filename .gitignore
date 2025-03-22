@@ -11,12 +11,10 @@
 *.log
 
 # Compiled binaries
-bin/
-obj/
-out/
-
-# Visual Studio Code files
-.vscode/
+*/bin/
+*/obj/
+*/out/
+.vs/
 
 # Build results
 [Bb]uild/
