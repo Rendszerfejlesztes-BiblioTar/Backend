@@ -1,4 +1,61 @@
-# Visual Studio .gitignore file
+# Visual Studio specific
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+bin/
+obj/
+*.cache
+*.ilk
+*.log
+*.obj
+*.pdb
+*.pch
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlog
+*.tmp
+*.log
+*.VSCodeCounter
+
+# NuGet packages
+*.nupkg
+packages/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.cache
+*.nuget.dgspec.json
+*.nuget.g.props
+
+# Debug and release folders
+Debug/
+Release/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Rider and ReSharper
+.idea/
+*.sln.iml
+*.DotSettings.user
+*.ReSharper
+*_ReSharper.Caches
+
+# File-based project settings
+*.DotSettings
+
+# Auto-generated files
+GeneratedMSBuildEditorConfig.editorconfig
+*.g.i.cs
+*.g.cs
+*.g.vb
 
 # User-specific files
 *.rsuser
@@ -7,75 +64,6 @@
 *.userosscache
 *.sln.docstates
 
-# Logs
-*.log
-
-# Compiled binaries
-*/bin/
-*/obj/
-*/out/
-.vs/
-
-# Build results
-[Bb]uild/
-[Dd]ebug/
-[Rr]elease/
-[Xx]64/
-[Xx]86/
-[Aa]rm/
-[Aa]rm64/
-
-# Package directories
-packages/
-node_modules/
-
-# Dependency cache
-*.pdb
-*.mdb
-*.ilk
-*.obj
-*.o
-*.lo
-*.la
-*.a
-*.lib
-*.so
-*.so.*
-*.dll
-*.dylib
-*.exe
-*.idb
-*.ipch
-*.aps
-*.ncb
-*.opendb
-*.tlog
-*.log
-*.cache
-
-# Visual Studio databases
-*.sdf
-*.dbmdl
-*.mdf
-*.ldf
-
-# Publish build artifacts
-*.publish.xml
-
-# Resharper files
-*.resharper
-
-# NuGet
-project.lock.json
-project.assets.json
-.nuget/
-
-# Rider
-.idea/
-*.iml
-
-# macOS system files
-.DS_Store
-
-# Windows thumbnail cache
+# Other system files
 Thumbs.db
+desktop.ini
