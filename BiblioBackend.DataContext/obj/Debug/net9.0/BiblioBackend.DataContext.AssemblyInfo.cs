@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BiblioBackend.DataContext")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6b827f8264929c9a87f31abb991cb7e2dd3921ff")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+52887e563ea002f65c2459a71d6104a30150e65e")]
 [assembly: System.Reflection.AssemblyProductAttribute("BiblioBackend.DataContext")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BiblioBackend.DataContext")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,12 +1,328 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\armin\\Bibliotar-Backend\\Backend\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\migrations\\20250321120954_updateentities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|solutionrelative:bibliobackend.datacontext\\migrations\\20250321120954_updateentities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\context\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|solutionrelative:bibliobackend.datacontext\\context\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\migrations\\appdbcontextmodelsnapshot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|solutionrelative:bibliobackend.datacontext\\migrations\\appdbcontextmodelsnapshot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\migrations\\20250306160928_initial.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{215A274C-E4F9-4067-A09C-3C8F71C0E347}|BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj|solutionrelative:bibliobackend.datacontext\\migrations\\20250306160928_initial.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250321115646_InitialCreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:BiblioBackend.DataContext\\Migrations\\20250321115646_InitialCreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{56C0820C-FA42-42BE-876E-C43DC327C885}|BiblioBackend.Services\\BiblioBackend.Services.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.services\\bibliobackend.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{56C0820C-FA42-42BE-876E-C43DC327C885}|BiblioBackend.Services\\BiblioBackend.Services.csproj|solutionrelative:bibliobackend.services\\bibliobackend.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.services\\bookservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.services\\bookservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\controllers\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:controllers\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\privilegelevel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\privilegelevel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\loanhistory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\loanhistory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\reservation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\reservation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\book.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.datacontext\\entities\\author.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.datacontext\\entities\\author.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\bibliobackend.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:bibliobackend.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|c:\\users\\armin\\desktop\\biblio\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{3F8A92B7-94C6-4D80-8F30-4613724E757D}|BiblioBackend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "20250321120954_UpdateEntities.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250321120954_UpdateEntities.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Migrations\\20250321120954_UpdateEntities.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250321120954_UpdateEntities.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Migrations\\20250321120954_UpdateEntities.cs",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAQwP4AAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T12:09:54.19Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AppDbContextModelSnapshot.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\AppDbContextModelSnapshot.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Migrations\\AppDbContextModelSnapshot.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\AppDbContextModelSnapshot.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Migrations\\AppDbContextModelSnapshot.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T12:05:09.198Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "20250306160928_Initial.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250306160928_Initial.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Migrations\\20250306160928_Initial.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250306160928_Initial.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Migrations\\20250306160928_Initial.cs",
+              "ViewState": "AgIAAI4AAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:57:05.992Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "20250321115646_InitialCreate.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250321115646_InitialCreate.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Migrations\\20250321115646_InitialCreate.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Migrations\\20250321115646_InitialCreate.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Migrations\\20250321115646_InitialCreate.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:56:46.985Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAAB0AAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:11:28.954Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "BiblioBackend.Services.csproj",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\BiblioBackend.Services.csproj",
+              "RelativeDocumentMoniker": "BiblioBackend.Services\\BiblioBackend.Services.csproj",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\BiblioBackend.Services.csproj",
+              "RelativeToolTip": "BiblioBackend.Services\\BiblioBackend.Services.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAA0AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-03-21T11:55:32.374Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Context\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Context\\AppDbContext.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Context\\AppDbContext.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Context\\AppDbContext.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAA4wAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:11:15.629Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "PrivilegeLevel.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\PrivilegeLevel.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\PrivilegeLevel.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\PrivilegeLevel.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\PrivilegeLevel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:36:10.485Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "LoanHistory.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\LoanHistory.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\LoanHistory.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\LoanHistory.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\LoanHistory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:36:07.804Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Reservation.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Reservation.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\Reservation.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Reservation.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\Reservation.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:36:02.298Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\User.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\User.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\User.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\User.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:35:54.473Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "BiblioBackend.csproj",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.csproj",
+              "RelativeDocumentMoniker": "BiblioBackend.csproj",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.csproj",
+              "RelativeToolTip": "BiblioBackend.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-03-21T11:26:47.938Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "BookService.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\BookService.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.Services\\BookService.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\BookService.cs",
+              "RelativeToolTip": "BiblioBackend.Services\\BookService.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAA5wEkAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:11:02.927Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "BookController.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\Controllers\\BookController.cs",
+              "RelativeDocumentMoniker": "Controllers\\BookController.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\Controllers\\BookController.cs",
+              "RelativeToolTip": "Controllers\\BookController.cs",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAswEQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:11:50.826Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Category.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Category.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\Category.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Category.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\Category.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:35:49.24Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Book.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Book.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\Book.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Book.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\Book.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:14:59.498Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Author.cs",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Author.cs",
+              "RelativeDocumentMoniker": "BiblioBackend.DataContext\\Entities\\Author.cs",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\Entities\\Author.cs",
+              "RelativeToolTip": "BiblioBackend.DataContext\\Entities\\Author.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-21T11:35:29.86Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "BiblioBackend",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.csproj",
+              "RelativeDocumentMoniker": "BiblioBackend.csproj",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.csproj",
+              "RelativeToolTip": "BiblioBackend.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-03-21T11:34:07.468Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-03-21T11:27:22.537Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

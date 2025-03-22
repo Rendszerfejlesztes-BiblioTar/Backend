@@ -1,10 +1,9 @@
-namespace BiblioBackend.DataContext.Entities;
-
-public class Category
+namespace BiblioBackend.DataContext.Entities
 {
-    public int Id { get; set; }
-
-    public string Name { get; set; }
-
-    public List<Book> Books { get; set; }
+    public class Category
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; } // Nullable string
+        public List<Book> Books { get; set; } = new List<Book>(); // Inicializálás üres listával
+    }
 }

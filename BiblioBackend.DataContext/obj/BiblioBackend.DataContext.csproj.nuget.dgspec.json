@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj": {}
+    "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj": {}
   },
   "projects": {
-    "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj": {
+    "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj",
+        "projectUniqueName": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj",
         "projectName": "BiblioBackend.DataContext",
-        "projectPath": "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj",
+        "projectPath": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj",
         "packagesPath": "C:\\Users\\armin\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\obj\\",
+        "outputPath": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

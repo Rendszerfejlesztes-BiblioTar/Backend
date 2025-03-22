@@ -5160,11 +5160,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\armin\\Backend\\BiblioBackend.Services\\BiblioBackend.Services.csproj",
+      "projectUniqueName": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\BiblioBackend.Services.csproj",
       "projectName": "BiblioBackend.Services",
-      "projectPath": "C:\\Users\\armin\\Backend\\BiblioBackend.Services\\BiblioBackend.Services.csproj",
+      "projectPath": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\BiblioBackend.Services.csproj",
       "packagesPath": "C:\\Users\\armin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\armin\\Backend\\BiblioBackend.Services\\obj\\",
+      "outputPath": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.Services\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5186,8 +5186,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj": {
-              "projectPath": "C:\\Users\\armin\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj"
+            "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj": {
+              "projectPath": "C:\\Users\\armin\\Desktop\\biblio\\Backend\\BiblioBackend.DataContext\\BiblioBackend.DataContext.csproj"
             }
           }
         }
