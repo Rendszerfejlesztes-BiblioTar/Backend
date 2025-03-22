@@ -1,5 +1,83 @@
-/.idea
-/bin
-/BiblioBackend.DataContext/bin
-/BiblioBackend.Services/bin
-.vs/
+# Visual Studio .gitignore file
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Compiled binaries
+bin/
+obj/
+out/
+
+# Visual Studio Code files
+.vscode/
+
+# Build results
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+[Xx]64/
+[Xx]86/
+[Aa]rm/
+[Aa]rm64/
+
+# Package directories
+packages/
+node_modules/
+
+# Dependency cache
+*.pdb
+*.mdb
+*.ilk
+*.obj
+*.o
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.so.*
+*.dll
+*.dylib
+*.exe
+*.idb
+*.ipch
+*.aps
+*.ncb
+*.opendb
+*.tlog
+*.log
+*.cache
+
+# Visual Studio databases
+*.sdf
+*.dbmdl
+*.mdf
+*.ldf
+
+# Publish build artifacts
+*.publish.xml
+
+# Resharper files
+*.resharper
+
+# NuGet
+project.lock.json
+project.assets.json
+.nuget/
+
+# Rider
+.idea/
+*.iml
+
+# macOS system files
+.DS_Store
+
+# Windows thumbnail cache
+Thumbs.db
