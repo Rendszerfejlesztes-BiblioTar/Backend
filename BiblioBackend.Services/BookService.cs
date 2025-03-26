@@ -14,6 +14,7 @@ namespace BiblioBackend.Services
             Task<Book?> UpdateBookAsync(Book book); // Nullable Book
             Task<bool> DeleteBookAsync(int id);
             Task<string> GetTest();
+            Task<Book?> UpdateAvailability(int id, bool available);
         }
 
         public class BookService : IBookService
@@ -49,7 +50,6 @@ namespace BiblioBackend.Services
 
                 existingBook.Title = book.Title;
                 existingBook.Description = book.Description;
-                existingBook.IsAvailable = book.IsAvailable;
                 existingBook.NumberInLibrary = book.NumberInLibrary;
 
                 await _context.SaveChangesAsync();
@@ -69,6 +69,21 @@ namespace BiblioBackend.Services
             public async Task<string> GetTest()
             {
                 return "test";
+            }
+
+            public async Task<Book?> UpdateAvailability(int id, bool isAvailable) 
+            {
+                var bookToUpdate = await _context.Books.FindAsync(id);
+
+                if (bookToUpdate == null)
+                {
+                    return null;
+                }
+
+                bookToUpdate.IsAvailable = isAvailable;
+
+                await _context.SaveChangesAsync();
+                return bookToUpdate;
             }
         }
     }

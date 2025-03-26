@@ -64,5 +64,13 @@ namespace BiblioBackend.Controllers
             if (!result) return NotFound();
             return NoContent();
         }
+
+        [HttpPut("setAvailability/{id}")]
+        public async Task<IActionResult> UpdateAvailability(int id, bool isAvailable)
+        {
+            var book = await _bookService.UpdateAvailability(id, isAvailable);
+
+            return Ok(book);
+        }
     }
 }
