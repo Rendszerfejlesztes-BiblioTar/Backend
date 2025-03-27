@@ -11,5 +11,6 @@ namespace BiblioBackend.DataContext.Entities
         public string? Description { get; set; } // Nullable string
         public bool IsAvailable { get; set; }
         public string? NumberInLibrary { get; set; } // Nullable string
+        public BookQuality BookQuality { get; set; }
     }
 }

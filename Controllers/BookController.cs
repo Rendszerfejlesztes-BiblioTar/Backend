@@ -64,5 +64,31 @@ namespace BiblioBackend.Controllers
             if (!result) return NotFound();
             return NoContent();
         }
+
+        [HttpPut("availability/{id}")]
+        public async Task<IActionResult> UpdateAvailability(int id, bool isAvailable)
+        {
+            var book = await _bookService.UpdateAvailability(id, isAvailable);
+
+            if (book == null)
+            {
+                return NotFound("A megadott könyv nem létezik!");
+            }
+
+            return Ok(book);
+        }
+
+        [HttpPut("quality/{id}")]
+        public async Task<IActionResult> UpdateQuality(int id, BookQuality bookQuality)
+        {
+            var book = await _bookService.UpdateQuality(id, bookQuality);
+
+            if (book == null)
+            {
+                return NotFound("A megadott könyv nem létezik!");
+            }
+
+            return Ok(book);
+        }
     }
 }
