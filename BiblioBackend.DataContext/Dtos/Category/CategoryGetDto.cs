@@ -1,6 +1,6 @@
-﻿namespace BiblioBackend.DataContext.Dtos.Author
+﻿namespace BiblioBackend.DataContext.Dtos.Category
 {
-    public class AuthorGetDto
+    public class CategoryGetDto
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace BiblioBackend.Dtos.Author
+﻿namespace BiblioBackend.DataContext.Dtos.Author
 {
     public class AuthorModifyDto
     {

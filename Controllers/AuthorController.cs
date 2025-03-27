@@ -2,7 +2,7 @@
 using BiblioBackend.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using BiblioBackend.Dtos.Author;
+using BiblioBackend.DataContext.Dtos.Author;
 
 namespace BiblioBackend.Controllers
 {
