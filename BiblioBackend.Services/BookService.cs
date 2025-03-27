@@ -14,8 +14,11 @@ namespace BiblioBackend.Services
             Task<Book?> UpdateBookAsync(Book book); // Nullable Book
             Task<bool> DeleteBookAsync(int id);
             Task<string> GetTest();
-            Task<Book?> UpdateAvailability(int id, bool available);
-            Task<Book?> UpdateQuality(int id, BookQuality bookQuality);
+            Task<Book?> UpdateAvailabilityAsync(int id, bool available);
+            Task<Book?> UpdateQualityAsync(int id, BookQuality bookQuality);
+            Task<List<Book>> SearchBooksByNameAsync(string title);
+            Task<List<Book>> SearchBooksByCategoryAsync(string category);
+            Task<List<Book>> SearchBooksByAuthorAsync(string author);
         }
 
         public class BookService : IBookService
@@ -72,7 +75,7 @@ namespace BiblioBackend.Services
                 return "test";
             }
 
-            public async Task<Book?> UpdateAvailability(int id, bool isAvailable) 
+            public async Task<Book?> UpdateAvailabilityAsync(int id, bool isAvailable) 
             {
                 var bookToUpdate = await _context.Books.FindAsync(id);
 
@@ -87,7 +90,7 @@ namespace BiblioBackend.Services
                 return bookToUpdate;
             }
 
-            public async Task<Book?> UpdateQuality(int id, BookQuality bookQuality)
+            public async Task<Book?> UpdateQualityAsync(int id, BookQuality bookQuality)
             {
                 var bookToUpdate = await _context.Books.FindAsync(id);
 
@@ -100,6 +103,21 @@ namespace BiblioBackend.Services
 
                 await _context.SaveChangesAsync();
                 return bookToUpdate;
+            }
+
+            public async Task<List<Book>> SearchBooksByNameAsync(string title)
+            {
+                return await _context.Books.Include(b => b.Author).Include(b => b.Category).Where(b => b.Title.Contains(title)).ToListAsync();
+            }
+
+            public async Task<List<Book>> SearchBooksByCategoryAsync(string category)
+            {
+                return await _context.Books.Include(b => b.Category).Include(b => b.Author).Where(b => b.Category.Name.Contains(category)).ToListAsync();
+            }
+
+            public async Task<List<Book>> SearchBooksByAuthorAsync(string author)
+            {
+                return await _context.Books.Include(b => b.Author).Include(b => b.Category).Where(b => b.Author.Name.Contains(author)).ToListAsync();
             }
         }
     }
