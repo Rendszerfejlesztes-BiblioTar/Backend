@@ -7,14 +7,17 @@ namespace BiblioBackend.Services
 {
     public interface IBookService
     {
-        Task<List<BookDto>> GetAllBooksAsync();
+        Task<List<BookDto>> GetAllBooksAsync(); // BookDto használata
         Task<Book?> GetBookByIdAsync(int id);
         Task<Book> CreateBookAsync(Book book);
         Task<Book?> UpdateBookAsync(Book book);
         Task<bool> DeleteBookAsync(int id);
         Task<string> GetTest();
-        Task<Book?> UpdateAvailability(int id, bool available);
-        Task<Book?> UpdateQuality(int id, BookQuality bookQuality);
+        Task<Book?> UpdateAvailabilityAsync(int id, bool available); // Async suffix egységesítve
+        Task<Book?> UpdateQualityAsync(int id, BookQuality bookQuality); // Async suffix egységesítve
+        Task<List<Book>> SearchBooksByNameAsync(string title);
+        Task<List<Book>> SearchBooksByCategoryAsync(string category);
+        Task<List<Book>> SearchBooksByAuthorAsync(string author);
     }
 
     public class BookService : IBookService
@@ -54,7 +57,7 @@ namespace BiblioBackend.Services
 
             if (book != null)
             {
-                // Opcion�lis: Ciklus megszak�t�sa, ha Book-ot adsz vissza
+                // Ciklus megszakítása
                 if (book.Author != null) book.Author.Books = null;
                 if (book.Category != null) book.Category.Books = null;
             }
@@ -97,7 +100,7 @@ namespace BiblioBackend.Services
             return "test";
         }
 
-        public async Task<Book?> UpdateAvailability(int id, bool isAvailable)
+        public async Task<Book?> UpdateAvailabilityAsync(int id, bool isAvailable)
         {
             var bookToUpdate = await _context.Books.FindAsync(id);
             if (bookToUpdate == null) return null;
@@ -107,14 +110,68 @@ namespace BiblioBackend.Services
             return bookToUpdate;
         }
 
-        public async Task<Book?> UpdateQuality(int id, BookQuality bookQuality)
+        public async Task<Book?> UpdateQualityAsync(int id, BookQuality bookQuality)
         {
             var bookToUpdate = await _context.Books.FindAsync(id);
             if (bookToUpdate == null) return null;
 
-            bookToUpdate.BookQuality = (int)bookQuality;
+            bookToUpdate.BookQuality = (int)bookQuality; // Egységes típuskonverzió
             await _context.SaveChangesAsync();
             return bookToUpdate;
+        }
+
+        public async Task<List<Book>> SearchBooksByNameAsync(string title)
+        {
+            var books = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Category)
+                .Where(b => b.Title.Contains(title))
+                .ToListAsync();
+
+            // Ciklus megszakítása
+            foreach (var book in books)
+            {
+                if (book.Author != null) book.Author.Books = null;
+                if (book.Category != null) book.Category.Books = null;
+            }
+
+            return books;
+        }
+
+        public async Task<List<Book>> SearchBooksByCategoryAsync(string category)
+        {
+            var books = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Category)
+                .Where(b => b.Category.Name.Contains(category))
+                .ToListAsync();
+
+            // Ciklus megszakítása
+            foreach (var book in books)
+            {
+                if (book.Author != null) book.Author.Books = null;
+                if (book.Category != null) book.Category.Books = null;
+            }
+
+            return books;
+        }
+
+        public async Task<List<Book>> SearchBooksByAuthorAsync(string author)
+        {
+            var books = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Category)
+                .Where(b => b.Author.Name.Contains(author))
+                .ToListAsync();
+
+            // Ciklus megszakítása
+            foreach (var book in books)
+            {
+                if (book.Author != null) book.Author.Books = null;
+                if (book.Category != null) book.Category.Books = null;
+            }
+
+            return books;
         }
     }
 }

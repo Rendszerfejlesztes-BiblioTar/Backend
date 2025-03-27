@@ -67,7 +67,7 @@ namespace BiblioBackend.Controllers
         [HttpPut("availability/{id}")]
         public async Task<IActionResult> UpdateAvailability(int id, bool isAvailable)
         {
-            var book = await _bookService.UpdateAvailability(id, isAvailable);
+            var book = await _bookService.UpdateAvailabilityAsync(id, isAvailable);
 
             if (book == null)
             {
@@ -80,7 +80,7 @@ namespace BiblioBackend.Controllers
         [HttpPut("quality/{id}")]
         public async Task<IActionResult> UpdateQuality(int id, BookQuality bookQuality)
         {
-            var book = await _bookService.UpdateQuality(id, bookQuality);
+            var book = await _bookService.UpdateQualityAsync(id, bookQuality);
 
             if (book == null)
             {
@@ -88,6 +88,39 @@ namespace BiblioBackend.Controllers
             }
 
             return Ok(book);
+        }
+
+        [HttpGet("search/title")]
+        public async Task<IActionResult> SearchBooksByName(string title)
+        {
+            var filtered = await _bookService.SearchBooksByNameAsync(title);
+            if (filtered.Count == 0)
+            {
+                return NotFound("A megadott címmel nem létezik könyv!");
+            }
+            return Ok(filtered);
+        }
+
+        [HttpGet("search/author")]
+        public async Task<IActionResult> SearchBooksByAuthor(string author)
+        {
+            var filtered = await _bookService.SearchBooksByAuthorAsync(author);
+            if (filtered.Count == 0)
+            {
+                return NotFound("A megadott szertõvel nem létezik könyv!");
+            }
+            return Ok(filtered);
+        }
+
+        [HttpGet("search/category")]
+        public async Task<IActionResult> SearchBooksByCategory(string category)
+        {
+            var filtered = await _bookService.SearchBooksByCategoryAsync(category);
+            if (filtered.Count == 0)
+            {
+                return NotFound("A megadott kategóriával nem létezik könyv!");
+            }
+            return Ok(filtered);
         }
     }
 }
