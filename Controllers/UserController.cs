@@ -1,7 +1,6 @@
 ﻿using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BiblioBackend.Controllers
 {
