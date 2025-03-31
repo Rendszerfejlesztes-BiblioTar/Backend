@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using BiblioBackend.BiblioBackend.DataContext.Entities;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.EntityFrameworkCore;
 namespace BiblioBackend.DataContext.Context;
@@ -14,24 +15,13 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories { get; set; }
     public DbSet<Author> Authors { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
-    public DbSet<LoanHistory> LoanHistories { get; set; }
+    public DbSet<Loan> Loans { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString;
-        //if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        //{
-        //    // Muszály egy külön db connection string, nincs windows auth linuxon
-        //    connectionString = "Server=localhost;Initial Catalog=Biblio;User Id=SA;Password=Database1234;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;";
-        //}
-        //else
-        //{
-        //    connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
-        //}
-
     
-     connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
-        
+        connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
 
         optionsBuilder.UseSqlServer(connectionString);
     }
@@ -46,6 +36,18 @@ public class AppDbContext : DbContext
             .Property(u => u.Privilege)
             .HasConversion<string>();
 
+        modelBuilder.Entity<Loan>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.Loans)
+            .HasForeignKey(l => l.UserEmail)
+            .HasPrincipalKey(u => u.Email);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.User)
+            .WithMany(u => u.Reservations)
+            .HasForeignKey(r => r.UserEmail)
+            .HasPrincipalKey(u => u.Email);
+
         // Book relationships
         modelBuilder.Entity<Book>()
             .HasOne(b => b.Author)
@@ -56,27 +58,5 @@ public class AppDbContext : DbContext
             .HasOne(b => b.Category)
             .WithMany(c => c.Books)
             .HasForeignKey(b => b.CategoryId);
-
-        // Reservation relationships
-        modelBuilder.Entity<Reservation>()
-            .HasOne(r => r.Book)
-            .WithMany()
-            .HasForeignKey(r => r.BookId);
-
-        modelBuilder.Entity<Reservation>()
-            .HasOne(r => r.User)
-            .WithMany(u => u.Reservations)
-            .HasForeignKey(r => r.UserEmail);
-
-        // Loan history relationships
-        modelBuilder.Entity<LoanHistory>()
-            .HasOne(l => l.Book)
-            .WithMany()
-            .HasForeignKey(l => l.BookId);
-
-        modelBuilder.Entity<LoanHistory>()
-            .HasOne(l => l.User)
-            .WithMany(u => u.LoanHistories)
-            .HasForeignKey(l => l.UserEmail);
     }
 }

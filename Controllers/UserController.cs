@@ -1,6 +1,7 @@
 ﻿using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BiblioBackend.Controllers
 {
@@ -18,6 +19,8 @@ namespace BiblioBackend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] User user)
         {
+            return default;
+            /*
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // Ellenőrizzük, hogy az email egyedi-e
@@ -26,15 +29,16 @@ namespace BiblioBackend.Controllers
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);*/
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            return default;
+            /*var user = await _context.Users.FirstOrDefaultAsync(user => user.Id == id);
             if (user == null) return NotFound();
-            return Ok(user);
+            return Ok(user);*/
         }
 
         [HttpDelete("{id}")]
