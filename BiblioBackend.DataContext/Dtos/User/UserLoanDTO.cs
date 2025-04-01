@@ -5,15 +5,15 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// </summary>
 public class UserLoanDTO
 {
-    public int LoanId { get; set; }
+    public int? LoanId { get; set; }
     
-    public int BookId { get; set; }
+    public int? BookId { get; set; }
     
-    public int Extensions { get; set; }
+    public int? Extensions { get; set; }
     
-    public DateTime StartDate { get; set; }
+    public DateTime? StartDate { get; set; }
     
-    public DateTime ExpectedEndDate { get; set; }
+    public DateTime? ExpectedEndDate { get; set; }
     
     public DateTime? ReturnDate { get; set; }
 }

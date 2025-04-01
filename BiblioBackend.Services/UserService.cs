@@ -1,3 +1,4 @@
+using BiblioBackend.BiblioBackend.DataContext.Entities;
 using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Dtos.User;
 using BiblioBackend.DataContext.Dtos.User.Post;
@@ -55,16 +56,18 @@ public interface IUserService
     /// <summary>
     /// Add the reservations from the given DTO to the user
     /// </summary>
+    /// <param name="email">The email of the target user</param>
     /// <param name="userModifyReservationDto">The DTO from which the new reservations are from</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserReservationsAsync(List<UserReservationDTO> userModifyReservationDto);
+    Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDTO> userModifyReservationDto);
     
     /// <summary>
     /// Add the loans from the given DTO to the user
     /// </summary>
+    /// <param name="email">The email of the target user</param>
     /// <param name="userModifyLoanDto">The DTO from which the new loans are from</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserLoansAsync(List<UserLoanDTO> userModifyLoanDto);
+    Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto);
     
     /// <summary>
     /// Changes the users privilige level
@@ -79,16 +82,18 @@ public interface IUserService
     /// <summary>
     /// Remove the reservations from the given DTO from the user
     /// </summary>
+    /// <param name="email">The email of the target user</param>
     /// <param name="userModifyReservationDto">The DTO from which we are removing from the user</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> RemoveUserReservationAsync(List<UserReservationDTO> userModifyReservationDto);
+    Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDTO> userModifyReservationDto);
     
     /// <summary>
     /// Remove the loans from the given DTO from the user
     /// </summary>
+    /// <param name="email">The email of the target user</param>
     /// <param name="userModifyLoanDto">The DTO from which we are removing from the user</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> RemoveUserLoansAsync(List<UserLoanDTO> userModifyLoanDto);
+    Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto);
     
     // Post     ------------------------------------------------------------------------------------------------------------------------
     /// <summary>
@@ -174,7 +179,8 @@ public class UserService : IUserService
             Console.WriteLine($"[UserService::GetUserReservationsByEmailAsync] Reservations are empty! Email: {email}");
             return result;
         }
-        foreach (var reservation in reservations)
+
+        Parallel.ForEach(reservations, reservation =>
         {
             result.Add(new UserReservationDTO()
             { 
@@ -185,7 +191,7 @@ public class UserService : IUserService
                 ExpectedStart = reservation.ExpectedStart,
                 ExpectedEnd = reservation.ExpectedEnd,
             });
-        }
+        });
 
         return result;
     }
@@ -210,7 +216,8 @@ public class UserService : IUserService
             Console.WriteLine($"[UserService::GetUserLoansByEmailAsync] Loans are empty! Email: {email}");
             return result;
         }
-        foreach (var loan in loans)
+
+        Parallel.ForEach(loans, loan =>
         {
             result.Add(new UserLoanDTO()
             { 
@@ -221,29 +228,149 @@ public class UserService : IUserService
                 ExpectedEndDate = loan.ExpectedEndDate,
                 ReturnDate = loan.ReturnDate,
             });
-        }
+        });
 
         return result;
     }
 
     public async Task<bool> UpdateUserContactInformationAsync(UserModifyContactDTO userModifyContactDto)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.Where(u => u.Email == userModifyContactDto.Email).FirstOrDefaultAsync();
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::UpdateUserContactInformationAsync] User not found! Email: {userModifyContactDto.Email}");
+            return false;
+        }
+
+        // Modify user contact info
+        Console.WriteLine($"[UserService::UpdateUserContactInformationAsync] Updating user contact information... Email: {userModifyContactDto.Email}");
+        
+        _dbContext.Users.Update(user);
+        
+        user.FirstName = userModifyContactDto.FirstName;
+        user.LastName = userModifyContactDto.LastName;
+        user.Phone = userModifyContactDto.Phone;
+        user.Address = userModifyContactDto.Address;
+        
+        await _dbContext.SaveChangesAsync();
+        
+        Console.WriteLine($"[UserService::UpdateUserContactInformationAsync] Updated user contact information. Email: {userModifyContactDto.Email}");
+
+        return true;
     }
 
     public async Task<bool> UpdateUserEmailAsync(UserModifyEmailDTO userModifyEmailDto)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.Where(u => u.Email == userModifyEmailDto.OldEmail).FirstOrDefaultAsync();
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::UpdateUserEmailAsync] User not found! Email: {userModifyEmailDto.OldEmail}");
+            return false;
+        }
+        
+        _dbContext.Users.Update(user);
+
+        user.Email = userModifyEmailDto.NewEmail;
+            
+        await _dbContext.SaveChangesAsync();
+        Console.WriteLine($"[UserService::UpdateUserEmailAsync] Updated user email. Email: {userModifyEmailDto.OldEmail} -> {userModifyEmailDto.NewEmail}");
+        return true;
     }
 
-    public async Task<bool> UpdateUserReservationsAsync(List<UserReservationDTO> userModifyReservationDto)
+    public async Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDTO> userModifyReservationDto)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.Where(u => u.Email == email)
+            .Include(user => user.Reservations).FirstOrDefaultAsync();
+        
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::UpdateUserReservationsAsync] User not found! Email: {email}");
+            return false;
+        }
+        
+        if (userModifyReservationDto.Count < 1)
+        {
+            // If nothing is going to be added, do not continue
+            Console.WriteLine($"[UserService::UpdateUserReservationsAsync] DTO was an empty list! Email: {email}");
+            return false;
+        }
+
+        if (user.Reservations == null)
+        {
+            // if the user has a null list, create an empty list for it
+            user.Reservations = new List<Reservation>();
+        }
+        
+        _dbContext.Users.Update(user);
+
+        Parallel.ForEach(userModifyReservationDto, userReservationDto =>
+        {
+            user.Reservations.Add(new Reservation()
+            {
+                BookId = userReservationDto.BookId ?? -1,
+                UserEmail = user.Email,
+                IsAccepted = userReservationDto.IsAccepted ?? false,
+                ReservationDate = userReservationDto.ReservationDate ?? DateTime.UtcNow,
+                ExpectedStart = userReservationDto.ExpectedStart ?? DateTime.UtcNow,
+                ExpectedEnd = userReservationDto.ExpectedEnd ?? DateTime.UtcNow,
+            });
+        });
+
+        await _dbContext.SaveChangesAsync();
+        
+        Console.WriteLine($"[UserService::UpdateUserReservationsAsync] Modified user reservations! Email: {email}");
+
+        return true;
     }
 
-    public async Task<bool> UpdateUserLoansAsync(List<UserLoanDTO> userModifyLoanDto)
+    public async Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.Where(u => u.Email == email)
+            .Include(user => user.Loans).FirstOrDefaultAsync();
+        
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::UpdateUserLoansAsync] User not found! Email: {email}");
+            return false;
+        }
+        
+        if (userModifyLoanDto.Count < 1)
+        {
+            // If nothing is going to be added, do not continue
+            Console.WriteLine($"[UserService::UpdateUserLoansAsync] DTO was an empty list! Email: {email}");
+            return false;
+        }
+
+        if (user.Loans == null)
+        {
+            // if the user has a null list, create an empty list for it
+            user.Loans = new List<Loan>();
+        }
+        
+        _dbContext.Users.Update(user);
+
+        Parallel.ForEach(userModifyLoanDto, userLoanDto =>
+        {
+            user.Loans.Add(new Loan()
+            {
+                BookId = userLoanDto.BookId ?? -1,
+                UserEmail = user.Email,
+                Extensions = userLoanDto.Extensions ?? new Loan().Extensions, // use the default extention value of loans
+                StartDate = userLoanDto.StartDate ?? DateTime.UtcNow,
+                ExpectedEndDate = userLoanDto.ExpectedEndDate ?? DateTime.UtcNow,
+                ReturnDate = userLoanDto.ReturnDate
+            });
+        });
+
+        await _dbContext.SaveChangesAsync();
+        
+        Console.WriteLine($"[UserService::UpdateUserLoansAsync] Modified user loans! Email: {email}");
+
+        return true;
     }
 
     public async Task<bool> UpdateUserPriviligeAsync(UserModifyPriviligeDTO userModifyPriviligeDto)
@@ -266,19 +393,118 @@ public class UserService : IUserService
             return false;
         }
 
+        _dbContext.Users.Update(user);
+
         user.Privilege = userModifyPriviligeDto.NewPrivilege; // Change user privilige
+        
+        await _dbContext.SaveChangesAsync();
+        
         Console.WriteLine($"[UserService::UpdateUserPriviligeAsync] User privilige has been modified! Email: {userModifyPriviligeDto.Email}, Privilige: {userModifyPriviligeDto.NewPrivilege}");
         return true;
     }
 
-    public async Task<bool> RemoveUserReservationAsync(List<UserReservationDTO> userModifyReservationDto)
+    public async Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDTO> userModifyReservationDto)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.Where(u => u.Email == email)
+            .Include(user => user.Reservations).FirstOrDefaultAsync();
+        
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::RemoveUserReservationAsync] User not found! Email: {email}");
+            return false;
+        }
+        
+        if (userModifyReservationDto.Count < 1)
+        {
+            // If nothing is going to be added, do not continue
+            Console.WriteLine($"[UserService::RemoveUserReservationAsync] DTO was an empty list! Email: {email}");
+            return false;
+        }
+
+        if (user.Reservations == null)
+        {
+            // if the user has a null list, we have nothing to remove
+            Console.WriteLine($"[UserService::RemoveUserReservationAsync] User has an empty list! Email: {email}");
+            return false;
+        }
+        
+        _dbContext.Users.Update(user);
+
+        Parallel.ForEach(userModifyReservationDto, userReservationDto =>
+        {
+            if (userReservationDto.ReservationId == null)
+            {
+                Console.WriteLine($"[UserService::RemoveUserReservationAsync] Got an empty reservation ID! Email: {email}");
+                return;
+            }
+
+            var reservation = Task.Run(() => _dbContext.Reservations.Where(r => r.Id == userReservationDto.ReservationId).FirstOrDefaultAsync()).Result;
+            if (reservation == null)
+            {
+                Console.WriteLine($"[UserService::RemoveUserReservationAsync] Reservation not found! Email: {email}");
+                return;
+            }
+            _dbContext.Reservations.Remove(reservation);
+        });
+
+        await _dbContext.SaveChangesAsync();
+        
+        Console.WriteLine($"[UserService::UpdateUserReservationsAsync] Modified user reservations! Email: {email}");
+
+        return true;
     }
 
-    public async Task<bool> RemoveUserLoansAsync(List<UserLoanDTO> userModifyLoanDto)
+    public async Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
     {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users.Where(u => u.Email == email)
+            .Include(user => user.Loans).FirstOrDefaultAsync();
+        
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::RemoveUserLoansAsync] User not found! Email: {email}");
+            return false;
+        }
+        
+        if (userModifyLoanDto.Count < 1)
+        {
+            // If nothing is going to be added, do not continue
+            Console.WriteLine($"[UserService::RemoveUserLoansAsync] DTO was an empty list! Email: {email}");
+            return false;
+        }
+
+        if (user.Loans == null)
+        {
+            // if the user has a null list, we have nothing to remove
+            Console.WriteLine($"[UserService::RemoveUserLoansAsync] User has an empty list! Email: {email}");
+            return false;
+        }
+        
+        _dbContext.Users.Update(user);
+
+        Parallel.ForEach(userModifyLoanDto, userLoanDto =>
+        {
+            if (userLoanDto.LoanId == null)
+            {
+                Console.WriteLine($"[UserService::RemoveUserLoansAsync] Got an empty loan ID! Email: {email}");
+                return;
+            }
+
+            var loan = Task.Run(() => _dbContext.Loans.Where(l => l.Id == userLoanDto.LoanId).FirstOrDefaultAsync()).Result;
+            if (loan == null)
+            {
+                Console.WriteLine($"[UserService::RemoveUserLoansAsync] Loan not found! Email: {email}");
+                return;
+            }
+            _dbContext.Loans.Remove(loan);
+        });
+
+        await _dbContext.SaveChangesAsync();
+        
+        Console.WriteLine($"[UserService::UpdateUserReservationsAsync] Modified user reservations! Email: {email}");
+
+        return true;
     }
 
     public async Task<UserLoginTokenDTO> PostAutenticationAsync(UserLoginValuesDTO userLoginValuesDto)

@@ -5,6 +5,8 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// </summary>
 public class UserModifyContactDTO
 {
+    public string Email { get; set; }
+    
     public string? FirstName { get; set; }
     
     public string? LastName { get; set; }
