@@ -1,8 +1,5 @@
-﻿using BiblioBackend.DataContext.Entities;
-using BiblioBackend.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using BiblioBackend.Services;
 using Microsoft.AspNetCore.Mvc;
-using BiblioBackend.BiblioBackend.DataContext.Entities;
 using BiblioBackend.DataContext.Dtos.Loan;
 
 namespace BiblioBackend.Controllers
@@ -33,7 +30,7 @@ namespace BiblioBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateLoan([FromBody] LoanPostDto loan)
+        public async Task<IActionResult> CreateLoan([FromBody] LoanPostDTO loan)
         {
             if (!ModelState.IsValid)
             {
@@ -44,12 +41,12 @@ namespace BiblioBackend.Controllers
             return CreatedAtAction(nameof(CreateLoan), loan);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoanModifyDto modifyDto)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoanPatchDto patchDto)
         {
-            var newLoan = await _service.UpdateLoanAsync(id, modifyDto);
+            var newLoan = await _service.UpdateLoanAsync(id, patchDto);
 
-            if (newLoan != null)
+            if (newLoan == null)
             {
                 return NotFound();
             }
