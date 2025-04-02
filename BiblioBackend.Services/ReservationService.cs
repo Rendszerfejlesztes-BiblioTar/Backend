@@ -1,4 +1,5 @@
 ﻿using BiblioBackend.DataContext.Context;
+using BiblioBackend.DataContext.Dtos;
 using BiblioBackend.DataContext.Dtos.Reservation;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace BiblioBackend.BiblioBackend.Services
     {
         Task<List<ReservationGetDTO>> GetAllReservationsAsync();
         Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email);
-        Task<Reservation> GetAllInfoForReservationAsync(int id);
+        Task<ReservationDetailDto> GetAllInfoForReservationAsync(int id);
         Task<ReservationGetDTO> CreateReservationAsync(ReservationPostDTO reservation);
         Task<ReservationGetDTO> UpdateReservationAsync(int id, ReservationPatchDTO reservation);
         Task<bool> DeleteReservationAsync(int id);
@@ -36,12 +37,37 @@ namespace BiblioBackend.BiblioBackend.Services
                 })
                 .ToListAsync();
         }
-        public async Task<Reservation?> GetAllInfoForReservationAsync(int id)
+        public async Task<ReservationDetailDto?> GetAllInfoForReservationAsync(int id)
         {
-            return await _dbContext.Reservations
+            var reservation = await _dbContext.Reservations
                 .Include(r => r.Book)
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (reservation == null) 
+            { 
+                return null;
+            }
+
+            return new ReservationDetailDto
+            {
+                Id = reservation.Id,
+                Book = reservation.Book,
+                // When user dtos are implemented, this will need to be updated
+                User = new UserDto
+                {
+                    Email = reservation.User.Email,
+                    FirstName = reservation.User.FirstName,
+                    LastName = reservation.User.LastName,
+                    Phone = reservation.User.Phone,
+                    Address = reservation.User.Address,
+                    Privilege = reservation.User.Privilege
+                },
+                IsAccepted = reservation.IsAccepted,
+                ReservationDate = reservation.ReservationDate,
+                ExpectedStart = reservation.ExpectedStart,
+                ExpectedEnd = reservation.ExpectedEnd
+            };
         }
         public async Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email)
         {

@@ -22,10 +22,10 @@ namespace BiblioBackend.Controllers
             return Ok(Loans);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetLoansById(string id)
+        [HttpGet("{userEmail}")]
+        public async Task<IActionResult> GetLoansById(string userEmail)
         {
-            var Loans = await _service.GetLoansByUserIdAsync(id);
+            var Loans = await _service.GetLoansByUserIdAsync(userEmail);
             return Ok(Loans);
         }
 
