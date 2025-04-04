@@ -1,3 +1,4 @@
+using BiblioBackend.BiblioBackend.Services;
 using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
@@ -30,6 +31,7 @@ builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 
 // Swagger konfiguráció
