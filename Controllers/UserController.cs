@@ -21,7 +21,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userLoginValuesDto">The values from which the new user will be created</param>
         /// <returns>The requested actions result (true for success)</returns>
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] UserLoginValuesDTO userLoginValuesDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -40,7 +40,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userLoginValuesDto">The values from which the user will be authenticated</param>
         /// <returns>The token of the authenticated user</returns>
-        [HttpPost]
+        [HttpPost("authenticate")]
         public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginValuesDTO userLoginValuesDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -59,7 +59,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="email">The email of the given user</param>
         /// <returns>The users contact information</returns>
-        [HttpGet]
+        [HttpGet("getcontact")]
         public async Task<IActionResult> GetUserContact([FromBody] string email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -81,7 +81,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="email">The email of the given user</param>
         /// <returns>True if the user is authenticated</returns>
-        [HttpGet]
+        [HttpGet("isauthenticated")]
         public async Task<IActionResult> GetUserIsAuthenticated([FromBody] string email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -99,7 +99,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="email">The email of the given user</param>
         /// <returns>The users privilege information</returns>
-        [HttpGet]
+        [HttpGet("getprivilege")]
         public async Task<IActionResult> GetUserPrivilege([FromBody] string email)
         {
             var isExists = await _userService.GetUserIsExistsAsync(email);
@@ -115,7 +115,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="email">The email of the given user</param>
         /// <returns>All reservations tied to the user</returns>
-        [HttpGet]
+        [HttpGet("getreservations")]
         public async Task<IActionResult> GetUserReservations([FromBody] string email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -137,7 +137,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userCombinedRequestReservationDto">The dto containing information about the needed data</param>
         /// <returns>Selected reservations tied to the user</returns>
-        [HttpGet]
+        [HttpGet("getreservationsselected")]
         public async Task<IActionResult> GetUserReservationsSelected([FromBody] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -159,7 +159,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="email">The email of the given user</param>
         /// <returns>All loans tied to the user</returns>
-        [HttpGet]
+        [HttpGet("getloans")]
         public async Task<IActionResult> GetUserLoans([FromBody] string email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -181,7 +181,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userCombinedRequestLoanDto">The dto containing information about the needed data</param>
         /// <returns>Selected loans tied to the user</returns>
-        [HttpGet]
+        [HttpGet("getloansselected")]
         public async Task<IActionResult> GetUserLoansSelected([FromBody] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -203,7 +203,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userModifyContactDto">The dto from which the contact information will be updated from</param>
         /// <returns>The result of the action (true for success)</returns>
-        [HttpPut]
+        [HttpPut("setnewcontact")]
         public async Task<IActionResult> PutUserNewContact([FromBody] UserModifyContactDTO userModifyContactDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -225,7 +225,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userModifyLoginDto">The dto from which the information will be updated from</param>
         /// <returns>The result of the action (true for success)</returns>
-        [HttpPut]
+        [HttpPut("setnewemail")]
         public async Task<IActionResult> PutUserNewEmail([FromBody] UserModifyLoginDTO userModifyLoginDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -247,7 +247,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userCombinedRequestReservationDto">The dto list from which the reservations will be created</param>
         /// <returns>The result of the requested action (true for success)</returns>
-        [HttpPut]
+        [HttpPut("setnewreservations")]
         public async Task<IActionResult> PutUserNewReservations([FromBody] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -269,7 +269,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userCombinedRequestLoanDto">The dto list from which the loans will be created</param>
         /// <returns>The result of the requested action (true for success)</returns>
-        [HttpPut]
+        [HttpPut("setnewloans")]
         public async Task<IActionResult> PutUserNewLoans([FromBody] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -291,7 +291,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userModifyPrivilegeDto">The dto from which the information will be updated from</param>
         /// <returns>The result of the requested action (true for success)</returns>
-        [HttpPut]
+        [HttpPut("setnewpermission")]
         public async Task<IActionResult> PutUserNewPermission([FromBody] UserModifyPrivilegeDTO userModifyPrivilegeDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -313,7 +313,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="email">The email of the user to delete</param>
         /// <returns>The result of the requested action (true for success)</returns>
-        [HttpDelete]
+        [HttpDelete("deleteuser")]
         public async Task<IActionResult> DeleteUser([FromBody] string email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -335,7 +335,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userCombinedRequestReservationDto">The dto from which the reservations will be removed by</param>
         /// <returns>The result of the requested action (true for success)</returns>
-        [HttpDelete]
+        [HttpDelete("deletereservations")]
         public async Task<IActionResult> DeleteUserReservations([FromBody] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -357,7 +357,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userCombinedRequestLoanDto">The dto from which the loans will be removed by</param>
         /// <returns>The result of the requested action (true for success)</returns>
-        [HttpDelete]
+        [HttpDelete("deleteloans")]
         public async Task<IActionResult> DeleteUserLoans([FromBody] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
