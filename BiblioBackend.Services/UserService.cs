@@ -12,23 +12,48 @@ public interface IUserService
     // Get      ------------------------------------------------------------------------------------------------------------------------
     
     /// <summary>
+    /// Check if the given email is tied to an existing user
+    /// </summary>
+    /// <param name="email">The email address of the user</param>
+    /// <returns>The result of the requested action (true for exists)</returns>
+    Task<bool> GetUserIsExistsAsync(string email);
+
+    /// <summary>
+    /// Check if the given email is authenticated or not
+    /// </summary>
+    /// <param name="email">The email to check</param>
+    /// <returns>The result of the requested action (true for authenticated)</returns>
+    Task<bool> GetUserAuthenticatedAsync(string email);
+    
+    /// <summary>
     /// Get the users contact information based on its email address
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
     Task<UserGetContactDTO> GetUserContactInformationByEmailAsync(string email);
+    
     /// <summary>
-    /// Get the users privilige information based on its email address
+    /// Get the users privilege information based on its email address
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<UserGetPriviligeLevelDTO> GetUserPrivilegeLevelByEmailAsync(string email);
+    Task<UserGetPrivilegeLevelDTO> GetUserPrivilegeLevelByEmailAsync(string email);
+    
     /// <summary>
     /// Get the users reservation information based on its email address
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
     Task<List<UserReservationDTO>> GetUserReservationsByEmailAsync(string email);
+    
+    /// <summary>
+    /// Get the users reservations by the given IDs
+    /// </summary>
+    /// <param name="email">The email address of the user</param>
+    /// <param name="userReservationDto">The dto containing the information about the reservations to get</param>
+    /// <returns>A DTO object which contains the requested information</returns>
+    Task<List<UserReservationDTO>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDTO> userReservationDto);
+    
     /// <summary>
     /// Get the users loan information based on its email address
     /// </summary>
@@ -36,7 +61,15 @@ public interface IUserService
     /// <returns>A DTO object which contains the requested information</returns>
     Task<List<UserLoanDTO>> GetUserLoansByEmailAsync(string email);
     
-    // Modify   ------------------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Get the users loans by the given IDs
+    /// </summary>
+    /// <param name="email">The email address of the user</param>
+    /// <param name="userLoanDto">The dto containing the information about the loans to get</param>
+    /// <returns>A DTO object which contains the requested information</returns>
+    Task<List<UserLoanDTO>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDTO> userLoanDto);
+    
+    // Put     ------------------------------------------------------------------------------------------------------------------------
     
     /// <summary>
     /// Modify the users contact information
@@ -49,9 +82,9 @@ public interface IUserService
     /// Modify the users email information, changing its primary id!!!
     /// Proper checks and precautions must be applied!
     /// </summary>
-    /// <param name="userModifyEmailDto">The DTO from which the user email will be changed to</param>
+    /// <param name="userModifyLoginDto">The DTO from which the user email will be changed to</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserEmailAsync(UserModifyEmailDTO userModifyEmailDto);
+    Task<bool> UpdateUserLoginAsync(UserModifyLoginDTO userModifyLoginDto);
     
     /// <summary>
     /// Add the reservations from the given DTO to the user
@@ -70,14 +103,21 @@ public interface IUserService
     Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto);
     
     /// <summary>
-    /// Changes the users privilige level
+    /// Changes the users privilege level
     /// This should only be allowed by an administrator!!!
     /// </summary>
-    /// <param name="userModifyPriviligeDto">The DTO from which the new privilige is from</param>
+    /// <param name="userModifyPrivilegeDto">The DTO from which the new privilege is from</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserPriviligeAsync(UserModifyPriviligeDTO userModifyPriviligeDto);
+    Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDTO userModifyPrivilegeDto);
     
     // Delete   ------------------------------------------------------------------------------------------------------------------------
+    
+    /// <summary>
+    /// Delete the user from the database, can not be undone!!!
+    /// </summary>
+    /// <param name="email">The email of the user we want to delete</param>
+    /// <returns>The result of the requested action (true for success)</returns>
+    Task<bool> RemoveUserAsync(string email);
     
     /// <summary>
     /// Remove the reservations from the given DTO from the user
@@ -102,6 +142,13 @@ public interface IUserService
     /// <param name="userLoginValuesDto">The DTO contains the users data, from the frontend</param>
     /// <returns>A DTO with their auth token</returns>
     Task<UserLoginTokenDTO> PostAutenticationAsync(UserLoginValuesDTO userLoginValuesDto);
+    
+    /// <summary>
+    /// Create a user from the DTO
+    /// </summary>
+    /// <param name="userLoginValuesDto">The DTO contains the users data, from the frontend</param>
+    /// <returns>The result of the requested action (true for success)</returns>
+    Task<bool> PostUserCreateAsync(UserLoginValuesDTO userLoginValuesDto);
 }
 
 public class UserService : IUserService
@@ -112,13 +159,47 @@ public class UserService : IUserService
     {
         _dbContext = dbContext;
     }
+    
+    // ---
 
-    public async Task<UserGetContactDTO> GetUserContactInformationByEmailAsync(string email)
+    public async Task<bool> GetUserIsExistsAsync(string email)
     {
+        if (email.Trim() == string.Empty)
+        {
+            return false;
+        }
+        var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
+        return user != null;
+    }
+
+    public async Task<bool> GetUserAuthenticatedAsync(string email)
+    {
+        //TODO: create authentication token verification
+        
         var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (user == null)
         {
-            // User is invalid
+            // Unregistered user
+            Console.WriteLine($"[UserService::GetUserAuthenticatedAsync] User not found! Email: {email}");
+            return false;
+        }
+        
+        // User existing in db
+        return true;
+    }
+
+    public async Task<UserGetContactDTO> GetUserContactInformationByEmailAsync(string email)
+    {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return null;
+        }
+        var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
+        if (user == null)
+        {
+            // User is invalid or not registered
             Console.WriteLine($"[UserService::GetUserContactInformationByEmailAsync] User not found! Email: {email}");
             return new UserGetContactDTO()
             {
@@ -138,29 +219,35 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserGetPriviligeLevelDTO> GetUserPrivilegeLevelByEmailAsync(string email)
+    public async Task<UserGetPrivilegeLevelDTO> GetUserPrivilegeLevelByEmailAsync(string email)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (user == null)
         {
-            // User is invalid
+            // User is invalid, or not registered
             Console.WriteLine($"[UserService::GetUserPrivilegeLevelByEmailAsync] User not found! Email: {email}");
-            return new UserGetPriviligeLevelDTO()
+            return new UserGetPrivilegeLevelDTO()
             {
-                Privilige = PrivilegeLevel.UnRegistered,
-                PriviligeString = PrivilegeLevel.UnRegistered.ToString()
+                Privilege = PrivilegeLevel.UnRegistered,
+                PrivilegeString = PrivilegeLevelStringify.PrivilegeLevelStrings[PrivilegeLevel.UnRegistered.ToString()]
             };
         }
         // Otherwise, give back real user data
-        return new UserGetPriviligeLevelDTO()
+        return new UserGetPrivilegeLevelDTO()
         {
-            Privilige = user.Privilege,
-            PriviligeString = user.Privilege.ToString()
+            Privilege = user.Privilege,
+            PrivilegeString = PrivilegeLevelStringify.PrivilegeLevelStrings[user.Privilege.ToString()]
         };
     }
 
     public async Task<List<UserReservationDTO>> GetUserReservationsByEmailAsync(string email)
     {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return null;
+        }
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -196,8 +283,61 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<List<UserReservationDTO>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDTO> userReservationDto)
+    {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return null;
+        }
+        var user = await _dbContext.Users.Where(u => u.Email == email)
+            .Include(user => user.Reservations).FirstOrDefaultAsync();
+        
+        var result = new List<UserReservationDTO>();
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::GetUserSelectedReservationsAsync] User not found! Email: {email}");
+            return result;
+        }
+
+        var reservations = user.Reservations;
+        if (reservations == null)
+        {
+            // No reservations
+            Console.WriteLine($"[UserService::GetUserSelectedReservationsAsync] Reservations are empty! Email: {email}");
+            return result;
+        }
+        
+        var convertId = userReservationDto.ConvertAll(o => o.ReservationId);
+
+        var lookupReservations = reservations.Where(r => convertId.Contains(r.Id)).ToList();
+
+        Parallel.ForEach(lookupReservations, reservation =>
+        {
+            result.Add(new UserReservationDTO()
+            { 
+                ReservationId = reservation.Id,
+                BookId = reservation.BookId,
+                IsAccepted = reservation.IsAccepted,
+                ReservationDate = reservation.ReservationDate,
+                ExpectedStart = reservation.ExpectedStart,
+                ExpectedEnd = reservation.ExpectedEnd,
+            });
+        });
+
+        return result;
+    }
+
     public async Task<List<UserLoanDTO>> GetUserLoansByEmailAsync(string email)
     {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return null;
+        }
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -233,8 +373,61 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<List<UserLoanDTO>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDTO> userLoanDto)
+    {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return null;
+        }
+        var user = await _dbContext.Users.Where(u => u.Email == email)
+            .Include(user => user.Loans).FirstOrDefaultAsync();
+        
+        var result = new List<UserLoanDTO>();
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::GetUserSelectedLoansAsync] User not found! Email: {email}");
+            return result;
+        }
+
+        var loans = user.Loans;
+        if (loans == null)
+        {
+            // No loans
+            Console.WriteLine($"[UserService::GetUserSelectedLoansAsync] Loans are empty! Email: {email}");
+            return result;
+        }
+        
+        var convertId = userLoanDto.ConvertAll(o => o.LoanId);
+
+        var lookupLoans = loans.Where(l => convertId.Contains(l.Id)).ToList();
+
+        Parallel.ForEach(lookupLoans, loan =>
+        {
+            result.Add(new UserLoanDTO()
+            { 
+                LoanId = loan.Id,
+                BookId = loan.BookId,
+                Extensions = loan.Extensions,
+                StartDate = loan.StartDate,
+                ExpectedEndDate = loan.ExpectedEndDate,
+                ReturnDate = loan.ReturnDate,
+            });
+        });
+
+        return result;
+    }
+
     public async Task<bool> UpdateUserContactInformationAsync(UserModifyContactDTO userModifyContactDto)
     {
+        var authenticated = await GetUserAuthenticatedAsync(userModifyContactDto.Email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
         var user = await _dbContext.Users.Where(u => u.Email == userModifyContactDto.Email).FirstOrDefaultAsync();
         if (user == null)
         {
@@ -260,27 +453,48 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> UpdateUserEmailAsync(UserModifyEmailDTO userModifyEmailDto)
+    public async Task<bool> UpdateUserLoginAsync(UserModifyLoginDTO userModifyLoginDto)
     {
-        var user = await _dbContext.Users.Where(u => u.Email == userModifyEmailDto.OldEmail).FirstOrDefaultAsync();
+        var authenticated = await GetUserAuthenticatedAsync(userModifyLoginDto.OldEmail);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
+        var user = await _dbContext.Users.Where(u => u.Email == userModifyLoginDto.OldEmail).FirstOrDefaultAsync();
         if (user == null)
         {
             // User is invalid
-            Console.WriteLine($"[UserService::UpdateUserEmailAsync] User not found! Email: {userModifyEmailDto.OldEmail}");
+            Console.WriteLine($"[UserService::UpdateUserEmailAsync] User not found! Email: {userModifyLoginDto.OldEmail}");
             return false;
         }
         
         _dbContext.Users.Update(user);
 
-        user.Email = userModifyEmailDto.NewEmail;
+        user.Email = userModifyLoginDto.NewEmail;
             
         await _dbContext.SaveChangesAsync();
-        Console.WriteLine($"[UserService::UpdateUserEmailAsync] Updated user email. Email: {userModifyEmailDto.OldEmail} -> {userModifyEmailDto.NewEmail}");
+        Console.WriteLine($"[UserService::UpdateUserEmailAsync] Updated user email. Email: {userModifyLoginDto.OldEmail} -> {userModifyLoginDto.NewEmail}");
         return true;
     }
 
     public async Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDTO> userModifyReservationDto)
     {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
+
+        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
+                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
+        if (!hasPermission)
+        {
+            Console.WriteLine("Insufficient privileges!");
+            return false;
+        }
+        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -328,6 +542,21 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
     {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
+        
+        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
+                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
+        if (!hasPermission)
+        {
+            Console.WriteLine("Insufficient privileges!");
+            return false;
+        }
+        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -373,38 +602,100 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> UpdateUserPriviligeAsync(UserModifyPriviligeDTO userModifyPriviligeDto)
+    public async Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDTO userModifyPrivilegeDto)
     {
-        var changeToken = userModifyPriviligeDto.ChangeToken;
-        //TODO: Check if change token is valid
-        Console.WriteLine("[UserService::UpdateUserPriviligeAsync] TODO!!! Check change token, disallow unauthenticated requests!!!!");
-        if (changeToken == "")
+        var authenticated = await GetUserAuthenticatedAsync(userModifyPrivilegeDto.RequesterEmail);
+        if (!authenticated)
         {
-            // Token is invalid
-            Console.WriteLine($"[UserService::UpdateUserPriviligeAsync] Invalid Token! Token: {userModifyPriviligeDto.ChangeToken}");
+            Console.WriteLine("User not authenticated!");
             return false;
         }
         
-        var user = await _dbContext.Users.Where(u => u.Email == userModifyPriviligeDto.Email).FirstOrDefaultAsync();
-        if (user == null)
+        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(userModifyPrivilegeDto.RequesterEmail)).Privilege &
+                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
+        if (!hasPermission)
+        {
+            Console.WriteLine("Insufficient privileges!");
+            return false;
+        }
+        
+        var changeToken = userModifyPrivilegeDto.ChangeToken;
+        //TODO: Check if change token is valid
+        if (changeToken == "")
+        {
+            // Token is invalid
+            Console.WriteLine($"[UserService::UpdateUserPrivilegeAsync] Invalid Token! Token: {userModifyPrivilegeDto.ChangeToken}");
+            return false;
+        }
+        
+        var user = await _dbContext.Users.Where(u => u.Email == userModifyPrivilegeDto.UserEmail).FirstOrDefaultAsync();
+        var requester = await _dbContext.Users.Where(u => u.Email == userModifyPrivilegeDto.RequesterEmail).FirstOrDefaultAsync();
+
+        if (user == null || requester == null)
         {
             // User is invalid
-            Console.WriteLine($"[UserService::UpdateUserPriviligeAsync] User not found! Email: {userModifyPriviligeDto.Email}");
+            Console.WriteLine($"[UserService::UpdateUserPrivilegeAsync] User not found! Email: {userModifyPrivilegeDto.UserEmail} - {userModifyPrivilegeDto.RequesterEmail}");
             return false;
         }
 
         _dbContext.Users.Update(user);
 
-        user.Privilege = userModifyPriviligeDto.NewPrivilege; // Change user privilige
+        user.Privilege = userModifyPrivilegeDto.NewPrivilege; // Change user privilege
         
         await _dbContext.SaveChangesAsync();
         
-        Console.WriteLine($"[UserService::UpdateUserPriviligeAsync] User privilige has been modified! Email: {userModifyPriviligeDto.Email}, Privilige: {userModifyPriviligeDto.NewPrivilege}");
+        Console.WriteLine($"[UserService::UpdateUserPrivilegeAsync] User privilege has been modified! Email: {userModifyPrivilegeDto.UserEmail}, Privilege: {userModifyPrivilegeDto.NewPrivilege}");
+        return true;
+    }
+
+    public async Task<bool> RemoveUserAsync(string email)
+    {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
+        
+        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
+                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
+        if (!hasPermission)
+        {
+            Console.WriteLine("Insufficient privileges!");
+            return false;
+        }
+        
+        var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
+        if (user == null)
+        {
+            // User is invalid
+            Console.WriteLine($"[UserService::RemoveUserAsync] User not found! Email: {email}");
+            return false;
+        }
+        
+        _dbContext.Users.Remove(user);
+
+        await _dbContext.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDTO> userModifyReservationDto)
     {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
+        
+        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
+                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
+        if (!hasPermission)
+        {
+            Console.WriteLine("Insufficient privileges!");
+            return false;
+        }
+        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -457,6 +748,21 @@ public class UserService : IUserService
 
     public async Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
     {
+        var authenticated = await GetUserAuthenticatedAsync(email);
+        if (!authenticated)
+        {
+            Console.WriteLine("User not authenticated!");
+            return false;
+        }
+        
+        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
+                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
+        if (!hasPermission)
+        {
+            Console.WriteLine("Insufficient privileges!");
+            return false;
+        }
+        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -517,7 +823,7 @@ public class UserService : IUserService
             return new UserLoginTokenDTO()
             {
                 AuthToken = null
-            };;
+            };
         }
         if (user.PasswordHash != userLoginValuesDto.PasswordHash)
         {
@@ -534,5 +840,27 @@ public class UserService : IUserService
         {
             AuthToken = "AuthToken"
         };
+    }
+
+    public async Task<bool> PostUserCreateAsync(UserLoginValuesDTO userLoginValuesDto)
+    {
+        var user = await _dbContext.Users.Where(u => u.Email == userLoginValuesDto.Email).FirstOrDefaultAsync();
+        if (user != null)
+        {
+            // User creation is invalid
+            Console.WriteLine($"[UserService::PostUserCreateAsync] User already exists! Email: {userLoginValuesDto.Email}");
+            return false;
+        }
+        
+        _dbContext.Users.Add(new User()
+        {
+            Email = userLoginValuesDto.Email,
+            PasswordHash = userLoginValuesDto.PasswordHash,
+            Privilege = PrivilegeLevel.Registered // We should only give this role, as privilege changing will be done by an admin, or librarian
+        });
+        
+        await _dbContext.SaveChangesAsync();
+
+        return true;
     }
 }

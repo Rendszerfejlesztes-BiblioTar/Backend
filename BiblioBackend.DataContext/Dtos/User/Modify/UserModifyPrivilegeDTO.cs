@@ -5,9 +5,11 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// <summary>
 /// Modify the users privilige level
 /// </summary>
-public class UserModifyPriviligeDTO
+public class UserModifyPrivilegeDTO
 {
-    public string Email { get; set; }
+    public string RequesterEmail { get; set; }
+    
+    public string UserEmail { get; set; }
     public PrivilegeLevel NewPrivilege { get; set; }
     
     //TODO: Implement some sort of verification, that this action is being performed by an admin!!!!!!
