@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BiblioBackend.DataContext.Dtos.Loan
 {
-    public class LoanGetDto
+    public class LoanGetDTO
     {
         public int Id { get; set; }
         public string UserEmail { get; set; }

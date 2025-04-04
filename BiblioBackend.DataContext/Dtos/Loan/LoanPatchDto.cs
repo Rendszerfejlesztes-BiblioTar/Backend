@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BiblioBackend.DataContext.Dtos.Loan
 {
-    public class LoanModifyDto
+    public class LoanPatchDto
     {
         public int? Extensions { get; set; }
         public int? BookId { get; set; }

@@ -1,23 +1,16 @@
 ﻿using BiblioBackend.BiblioBackend.DataContext.Entities;
 using BiblioBackend.DataContext.Context;
-using BiblioBackend.DataContext.Dtos;
 using BiblioBackend.DataContext.Dtos.Loan;
-using BiblioBackend.DataContext.Migrations;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BiblioBackend.Services
 {
     public interface ILoanService
     {
-        Task<List<LoanGetDto>> GetAllLoansAsync();
-        Task<List<LoanGetDto>?> GetLoansByUserIdAsync(string UserEmail);
-        Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto);
-        Task<LoanGetDto?> UpdateLoanAsync(int id, LoanModifyDto loanDto);
+        Task<List<LoanGetDTO>> GetAllLoansAsync();
+        Task<List<LoanGetDTO>?> GetLoansByUserIdAsync(string UserEmail);
+        Task<LoanGetDTO> CreateLoanAsync(LoanPostDTO loanDto);
+        Task<LoanGetDTO?> UpdateLoanAsync(int id, LoanPatchDto loanDto);
         Task<bool> DeleteLoanAsync(int id);
     }
     class LoanService : ILoanService
@@ -29,10 +22,10 @@ namespace BiblioBackend.Services
             _dbContext = dbContext;
         }
 
-        public async Task<List<LoanGetDto>> GetAllLoansAsync()
+        public async Task<List<LoanGetDTO>> GetAllLoansAsync()
         {
             return await _dbContext.Loans
-                .Select(loan => new LoanGetDto
+                .Select(loan => new LoanGetDTO
                 {
                     Id = loan.Id,
                     UserEmail = loan.UserEmail,
@@ -45,11 +38,11 @@ namespace BiblioBackend.Services
                 .ToListAsync();
         }
 
-        public async Task<List<LoanGetDto>?> GetLoansByUserIdAsync(string UserEmail)
+        public async Task<List<LoanGetDTO>?> GetLoansByUserIdAsync(string UserEmail)
         {
             var loan = await _dbContext.Loans
                 .Where(l => l.UserEmail == UserEmail)
-                .Select(loan => new LoanGetDto
+                .Select(loan => new LoanGetDTO
                 {
                     Id = loan.Id,
                     UserEmail = loan.UserEmail,
@@ -64,7 +57,7 @@ namespace BiblioBackend.Services
             return loan;
         }
 
-        public async Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanData)
+        public async Task<LoanGetDTO> CreateLoanAsync(LoanPostDTO loanData)
         {
             var newLoan = new Loan
             {
@@ -77,7 +70,7 @@ namespace BiblioBackend.Services
             _dbContext.Loans.Add(newLoan);
             await _dbContext.SaveChangesAsync();
 
-            return new LoanGetDto
+            return new LoanGetDTO
             {
                 Id = newLoan.Id,
                 UserEmail = newLoan.UserEmail,
@@ -89,14 +82,20 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<LoanGetDto?> UpdateLoanAsync(int id, LoanModifyDto loanDto)
+        public async Task<LoanGetDTO?> UpdateLoanAsync(int id, LoanPatchDto loanDto)
         {
             var loanToUpdate = await _dbContext.Loans.FindAsync(id);
+
+            Console.WriteLine(loanToUpdate.Id);
+
+            Console.WriteLine(_dbContext.Loans.FirstOrDefault(l => l.Id == 1).Id);
 
             if (loanToUpdate == null)
             {
                 return null;
             }
+
+            Console.WriteLine("HERE");
 
             if (loanDto.Extensions != null) { 
                 loanToUpdate.Extensions = (int)loanDto.Extensions;
@@ -125,7 +124,7 @@ namespace BiblioBackend.Services
 
             await _dbContext.SaveChangesAsync();
 
-            return new LoanGetDto
+            return new LoanGetDTO
             {
                 Id = loanToUpdate.Id,
                 UserEmail = loanToUpdate.UserEmail,
