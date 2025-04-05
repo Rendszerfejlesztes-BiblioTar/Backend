@@ -638,6 +638,20 @@ public class UserService : IUserService
             return false;
         }
 
+        if (user.Email == requester.Email)
+        {
+            // cant change self permission
+            Console.WriteLine($"[UserService::UpdateUserPrivilegeAsync] Cant change self permissions! Email: {user.Email}");
+            return false;
+        }
+
+        if (requester.Privilege > userModifyPrivilegeDto.NewPrivilege)
+        {
+            // cant elevate privileges above self for others (librarian cant give anyone admin, only librarian)
+            Console.WriteLine($"[UserService::UpdateUserPrivilegeAsync] Cant elevate users privilege above self! Email: {userModifyPrivilegeDto.UserEmail} - {userModifyPrivilegeDto.RequesterEmail}");
+            return false;
+        }
+
         _dbContext.Users.Update(user);
 
         user.Privilege = userModifyPrivilegeDto.NewPrivilege; // Change user privilege

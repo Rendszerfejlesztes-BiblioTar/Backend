@@ -57,78 +57,78 @@ namespace BiblioBackend.Controllers
         /// <summary>
         /// Retrieves the user, where the given email is tied to
         /// </summary>
-        /// <param name="email">The email of the given user</param>
+        /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>The users contact information</returns>
         [HttpGet("getcontact")]
-        public async Task<IActionResult> GetUserContact([FromBody] string email)
+        public async Task<IActionResult> GetUserContact([FromBody] UserEmailDto userEmailDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             
-            var isExists = await _userService.GetUserIsExistsAsync(email);
+            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
 
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(email);
+            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
             if (!isAuthenticated)
                 return BadRequest("Nem vagy bejelentkezve!");
 
-            var result = await _userService.GetUserContactInformationByEmailAsync(email);
+            var result = await _userService.GetUserContactInformationByEmailAsync(userEmailDto.Email);
             return Ok(result);
         }
         
         /// <summary>
         /// Check if the given user is authenticated or not
         /// </summary>
-        /// <param name="email">The email of the given user</param>
+        /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>True if the user is authenticated</returns>
         [HttpGet("isauthenticated")]
-        public async Task<IActionResult> GetUserIsAuthenticated([FromBody] string email)
+        public async Task<IActionResult> GetUserIsAuthenticated([FromBody] UserEmailDto userEmailDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             
-            var isExists = await _userService.GetUserIsExistsAsync(email);
+            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
 
-            var result = await _userService.GetUserAuthenticatedAsync(email);
+            var result = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
             return Ok(result);
         }
         
         /// <summary>
         /// Get the priviliges of a given user
         /// </summary>
-        /// <param name="email">The email of the given user</param>
+        /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>The users privilege information</returns>
         [HttpGet("getprivilege")]
-        public async Task<IActionResult> GetUserPrivilege([FromBody] string email)
+        public async Task<IActionResult> GetUserPrivilege([FromBody] UserEmailDto userEmailDto)
         {
-            var isExists = await _userService.GetUserIsExistsAsync(email);
+            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
 
-            var result = await _userService.GetUserPrivilegeLevelByEmailAsync(email);
+            var result = await _userService.GetUserPrivilegeLevelByEmailAsync(userEmailDto.Email);
             return Ok(result);
         }
         
         /// <summary>
         /// Get all the users reservation information
         /// </summary>
-        /// <param name="email">The email of the given user</param>
+        /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>All reservations tied to the user</returns>
         [HttpGet("getreservations")]
-        public async Task<IActionResult> GetUserReservations([FromBody] string email)
+        public async Task<IActionResult> GetUserReservations([FromBody] UserEmailDto userEmailDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             
-            var isExists = await _userService.GetUserIsExistsAsync(email);
+            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
             
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(email);
+            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
             if (!isAuthenticated)
                 return BadRequest("Nem vagy bejelentkezve!");
 
-            var result = await _userService.GetUserReservationsByEmailAsync(email);
+            var result = await _userService.GetUserReservationsByEmailAsync(userEmailDto.Email);
             return Ok(result);
         }
         
@@ -157,22 +157,22 @@ namespace BiblioBackend.Controllers
         /// <summary>
         /// Get all the users loan information
         /// </summary>
-        /// <param name="email">The email of the given user</param>
+        /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>All loans tied to the user</returns>
         [HttpGet("getloans")]
-        public async Task<IActionResult> GetUserLoans([FromBody] string email)
+        public async Task<IActionResult> GetUserLoans([FromBody] UserEmailDto userEmailDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             
-            var isExists = await _userService.GetUserIsExistsAsync(email);
+            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
             
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(email);
+            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
             if (!isAuthenticated)
                 return BadRequest("Nem vagy bejelentkezve!");
             
-            var result = await _userService.GetUserLoansByEmailAsync(email);
+            var result = await _userService.GetUserLoansByEmailAsync(userEmailDto.Email);
             return Ok(result);
         }
         
@@ -311,22 +311,22 @@ namespace BiblioBackend.Controllers
         /// <summary>
         /// Deletes a user from the database
         /// </summary>
-        /// <param name="email">The email of the user to delete</param>
+        /// <param name="userEmailDto">The email of the user to delete</param>
         /// <returns>The result of the requested action (true for success)</returns>
         [HttpDelete("deleteuser")]
-        public async Task<IActionResult> DeleteUser([FromBody] string email)
+        public async Task<IActionResult> DeleteUser([FromBody] UserEmailDto userEmailDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             
-            var isExists = await _userService.GetUserIsExistsAsync(email);
+            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
             
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(email);
+            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
             if (!isAuthenticated)
                 return BadRequest("Nem vagy bejelentkezve!");
 
-            var result = await _userService.RemoveUserAsync(email);
+            var result = await _userService.RemoveUserAsync(userEmailDto.Email);
             return Ok(result);
         }
         
