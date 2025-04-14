@@ -3,7 +3,13 @@ using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Dtos.User;
 using BiblioBackend.DataContext.Dtos.User.Post;
 using BiblioBackend.DataContext.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace BiblioBackend.Services;
 
@@ -154,12 +160,16 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly AppDbContext _dbContext;
+    private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserService(AppDbContext dbContext)
+    public UserService(AppDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
     }
-    
+
     // ---
 
     public async Task<bool> GetUserIsExistsAsync(string email)
@@ -174,17 +184,25 @@ public class UserService : IUserService
 
     public async Task<bool> GetUserAuthenticatedAsync(string email)
     {
-        //TODO: create authentication token verification
-        
-        var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
+        var user = await _dbContext.Users
+            .Where(u => u.Email == email)
+            .FirstOrDefaultAsync();
+
         if (user == null)
         {
-            // Unregistered user
             Console.WriteLine($"[UserService::GetUserAuthenticatedAsync] User not found! Email: {email}");
             return false;
         }
-        
-        // User existing in db
+
+        var currentUserEmail = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+        Console.WriteLine($"[UserService::GetUserAuthenticatedAsync] Current user email from token: {currentUserEmail}, Requested email: {email}");
+        if (currentUserEmail != email)
+        {
+            Console.WriteLine($"[UserService::GetUserAuthenticatedAsync] Token mismatch! Email: {email}, Token Email: {currentUserEmail}");
+            return false;
+        }
+
+        Console.WriteLine($"[UserService::GetUserAuthenticatedAsync] User authenticated! Email: {email}");
         return true;
     }
 
@@ -850,9 +868,40 @@ public class UserService : IUserService
         }
 
         Console.WriteLine($"[UserService::PostAutenticationAsync] User authenticated! Email: {userLoginValuesDto.Email}");
-        return new UserLoginTokenDTO()
+        var jwtKey = _configuration["Jwt:Key"];
+        if (string.IsNullOrEmpty(jwtKey))
         {
-            AuthToken = "AuthToken"
+            throw new InvalidOperationException("JWT Key is not configured in appsettings.json.");
+        }
+
+        var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
+        if (keyBytes.Length < 16)
+        {
+            throw new ArgumentException($"JWT Key must be at least 128 bits (16 bytes). Current length: {keyBytes.Length} bytes.");
+        }
+
+        var claims = new[]
+        {
+        new Claim(ClaimTypes.Name, user.Email),
+        new Claim(ClaimTypes.Role, user.Privilege.ToString()),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+
+        var key = new SymmetricSecurityKey(keyBytes);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.Now.AddHours(1),
+            signingCredentials: creds);
+
+        Console.WriteLine($"[UserService::PostAuthenticationAsync] User authenticated! Email: {userLoginValuesDto.Email}");
+        return new UserLoginTokenDTO
+        {
+            AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
+            Email = user.Email,
+            Privilege = user.Privilege
         };
     }
 

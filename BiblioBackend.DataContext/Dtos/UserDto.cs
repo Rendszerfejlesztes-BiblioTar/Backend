@@ -9,8 +9,6 @@ namespace BiblioBackend.DataContext.Dtos
 {
     public class UserDto
     {
-        // TODO!!!
-        // DELETE WHEN PROPER USER DTOS ARE IMPLEMENTED
         public string Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }

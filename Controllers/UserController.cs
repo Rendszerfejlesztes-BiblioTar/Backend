@@ -1,6 +1,7 @@
 ﻿using BiblioBackend.DataContext.Dtos.User;
 using BiblioBackend.DataContext.Dtos.User.Post;
 using BiblioBackend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiblioBackend.Controllers
@@ -51,6 +52,10 @@ namespace BiblioBackend.Controllers
                 return BadRequest("A felhasználó nem létezik.");
 
             var result = await _userService.PostAutenticationAsync(userLoginValuesDto);
+            if(result.AuthToken == null)
+            {
+                return BadRequest("Érvénytelen email vagy jelszó");
+            }
             return Ok(result);
         }
 
@@ -59,23 +64,24 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>The users contact information</returns>
+        [Authorize]
         [HttpGet("getcontact")]
-        public async Task<IActionResult> GetUserContact([FromBody] UserEmailDto userEmailDto)
+        public async Task<IActionResult> GetUserContact([FromQuery] UserEmailDto userEmailDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            
+
             var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return BadRequest("Nem létezik ilyen felhasználó!");
 
             var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
             if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
+                return Unauthorized("Nem vagy bejelentkezve!");
 
             var result = await _userService.GetUserContactInformationByEmailAsync(userEmailDto.Email);
             return Ok(result);
         }
-        
+
         /// <summary>
         /// Check if the given user is authenticated or not
         /// </summary>
