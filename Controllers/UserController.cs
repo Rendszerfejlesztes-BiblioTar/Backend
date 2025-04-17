@@ -144,6 +144,7 @@ namespace BiblioBackend.Controllers
         /// </summary>
         /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>The users contact information</returns>
+        [Authorize]
         [HttpGet("getcontact")]
         public async Task<IActionResult> GetUserContact([FromQuery] UserEmailDto userEmailDto)
         {
@@ -152,6 +153,10 @@ namespace BiblioBackend.Controllers
             var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
+            
+            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userEmailDto.Email);
+            if (!isAuthenticated)
+                return NotLoggedIn;
 
             var result = await _userService.GetUserContactInformationByEmailAsync(userEmailDto.Email);
             return Ok(result);
