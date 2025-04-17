@@ -8,6 +8,4 @@ namespace BiblioBackend.DataContext.Dtos.User.Post;
 public class UserLoginTokenDTO
 {
     public string? AuthToken { get; set; }
-    public string? Email { get; set; }
-    public PrivilegeLevel Privilege { get; set; }
 }

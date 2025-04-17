@@ -208,12 +208,6 @@ public class UserService : IUserService
 
     public async Task<UserGetContactDTO> GetUserContactInformationByEmailAsync(string email)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return null;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (user == null)
         {
@@ -260,12 +254,6 @@ public class UserService : IUserService
 
     public async Task<List<UserReservationDTO>> GetUserReservationsByEmailAsync(string email)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return null;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -303,12 +291,6 @@ public class UserService : IUserService
 
     public async Task<List<UserReservationDTO>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDTO> userReservationDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return null;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -350,12 +332,6 @@ public class UserService : IUserService
 
     public async Task<List<UserLoanDTO>> GetUserLoansByEmailAsync(string email)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return null;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -393,12 +369,6 @@ public class UserService : IUserService
 
     public async Task<List<UserLoanDTO>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDTO> userLoanDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return null;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -440,12 +410,6 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateUserContactInformationAsync(UserModifyContactDTO userModifyContactDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(userModifyContactDto.Email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == userModifyContactDto.Email).FirstOrDefaultAsync();
         if (user == null)
         {
@@ -473,12 +437,6 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateUserLoginAsync(UserModifyLoginDTO userModifyLoginDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(userModifyLoginDto.OldEmail);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
         var user = await _dbContext.Users.Where(u => u.Email == userModifyLoginDto.OldEmail).FirstOrDefaultAsync();
         if (user == null)
         {
@@ -498,21 +456,6 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDTO> userModifyReservationDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
-
-        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
-                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
-        if (!hasPermission)
-        {
-            Console.WriteLine("Insufficient privileges!");
-            return false;
-        }
-        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -560,21 +503,6 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
-        
-        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
-                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
-        if (!hasPermission)
-        {
-            Console.WriteLine("Insufficient privileges!");
-            return false;
-        }
-        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -622,30 +550,6 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDTO userModifyPrivilegeDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(userModifyPrivilegeDto.RequesterEmail);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
-        
-        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(userModifyPrivilegeDto.RequesterEmail)).Privilege &
-                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
-        if (!hasPermission)
-        {
-            Console.WriteLine("Insufficient privileges!");
-            return false;
-        }
-        
-        var changeToken = userModifyPrivilegeDto.ChangeToken;
-        //TODO: Check if change token is valid
-        if (changeToken == "")
-        {
-            // Token is invalid
-            Console.WriteLine($"[UserService::UpdateUserPrivilegeAsync] Invalid Token! Token: {userModifyPrivilegeDto.ChangeToken}");
-            return false;
-        }
-        
         var user = await _dbContext.Users.Where(u => u.Email == userModifyPrivilegeDto.UserEmail).FirstOrDefaultAsync();
         var requester = await _dbContext.Users.Where(u => u.Email == userModifyPrivilegeDto.RequesterEmail).FirstOrDefaultAsync();
 
@@ -682,21 +586,6 @@ public class UserService : IUserService
 
     public async Task<bool> RemoveUserAsync(string email)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
-        
-        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
-                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
-        if (!hasPermission)
-        {
-            Console.WriteLine("Insufficient privileges!");
-            return false;
-        }
-        
         var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (user == null)
         {
@@ -713,21 +602,6 @@ public class UserService : IUserService
 
     public async Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDTO> userModifyReservationDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
-        
-        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
-                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
-        if (!hasPermission)
-        {
-            Console.WriteLine("Insufficient privileges!");
-            return false;
-        }
-        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
@@ -780,21 +654,6 @@ public class UserService : IUserService
 
     public async Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
     {
-        var authenticated = await GetUserAuthenticatedAsync(email);
-        if (!authenticated)
-        {
-            Console.WriteLine("User not authenticated!");
-            return false;
-        }
-        
-        var hasPermission = ((await GetUserPrivilegeLevelByEmailAsync(email)).Privilege &
-                             (PrivilegeLevel.Admin | PrivilegeLevel.Librarian)) > 0;
-        if (!hasPermission)
-        {
-            Console.WriteLine("Insufficient privileges!");
-            return false;
-        }
-        
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
@@ -882,10 +741,9 @@ public class UserService : IUserService
 
         var claims = new[]
         {
-        new Claim(ClaimTypes.Name, user.Email),
-        new Claim(ClaimTypes.Role, user.Privilege.ToString()),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+            new Claim(ClaimTypes.Role, user.Privilege.ToString()), // This would be nice, but I have to hardcode the strings to the authorize attribute, which is an ugly solution, so our methods check the permission
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
         var key = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -900,8 +758,6 @@ public class UserService : IUserService
         return new UserLoginTokenDTO
         {
             AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
-            Email = user.Email,
-            Privilege = user.Privilege
         };
     }
 

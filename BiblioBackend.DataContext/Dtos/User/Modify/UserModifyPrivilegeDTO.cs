@@ -11,7 +11,4 @@ public class UserModifyPrivilegeDTO
     
     public string UserEmail { get; set; }
     public PrivilegeLevel NewPrivilege { get; set; }
-    
-    //TODO: Implement some sort of verification, that this action is being performed by an admin!!!!!!
-    public string ChangeToken { get; set; }
 }
