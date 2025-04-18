@@ -4,7 +4,7 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// <summary>
 /// Provides the user privilige string
 /// </summary>
-public class UserGetPrivilegeLevelDTO
+public class UserGetPrivilegeLevelDto
 {
     public PrivilegeLevel Privilege { get; set; }
     

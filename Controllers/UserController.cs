@@ -19,7 +19,7 @@ namespace BiblioBackend.Controllers
             _userService = userService;
         }
         
-        // --------------
+        // ---
 
         private ObjectResult ExistingUser => BadRequest("Ez az email már regisztrálva van.");
         private ObjectResult MissingUser => BadRequest("Nem létezik ilyen felhasználó!");
@@ -27,58 +27,7 @@ namespace BiblioBackend.Controllers
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehez!");
         
-        // --------------
-
-        /// <summary>
-        /// Checks if the given emails are tied to users exists
-        /// </summary>
-        /// <param name="emails">The users emails</param>
-        /// <returns>True if exists</returns>
-        private async Task<bool> CheckIsUserExistsAsync(params string[] emails)
-        {
-            var flag = false;
-            foreach (var email in emails)
-            {
-                flag = await _userService.GetUserIsExistsAsync(email);
-                if (!flag) // one of the emails doesnt exists, meaning we dont pass all the checks 100%
-                    return false;
-            }
-            return flag;
-        }
-        
-        /// <summary>
-        /// Checks if the given emails are authenticated
-        /// </summary>
-        /// <param name="emails">The users emails</param>
-        /// <returns>True if authenticated</returns>
-        private async Task<bool> CheckIsUserAuthenticatedAsync(params string[] emails)
-        {
-            var flag = false;
-            foreach (var email in emails) // probably only will ever have 1 email in the params, but just in case
-            {
-                flag = await _userService.GetUserAuthenticatedAsync(email);
-                if (!flag) // one of the emails doesnt exists, meaning we dont pass all the checks 100%
-                    return false;
-            }
-            return flag;
-        }
-        
-        /// <summary>
-        /// Checks if the given permission level is enough to satisfy the needed privileges
-        /// </summary>
-        /// <param name="email">The users email</param>
-        /// <param name="neededPrivileges">The privilege which is needed</param>
-        /// <returns>True if permitted</returns>
-        private async Task<bool> CheckIsUserPermittedAsync(string email, params PrivilegeLevel[] neededPrivileges)
-        {
-            PrivilegeLevel actualPrivilege = (await _userService.GetUserPrivilegeLevelByEmailAsync(email)).Privilege;
-            PrivilegeLevel merged = neededPrivileges[0];
-            foreach (var level in neededPrivileges) // probably only will ever have 1 email in the params, but just in case
-            {
-                merged |= level;
-            }
-            return (actualPrivilege & merged) != 0;
-        }
+        // ---
 
         /// <summary>
         /// Registers the user
@@ -86,12 +35,10 @@ namespace BiblioBackend.Controllers
         /// <param name="userLoginValuesDto">The values from which the new user will be created</param>
         /// <returns>The requested actions result (true for success)</returns>
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterUser([FromBody] UserLoginValuesDTO userLoginValuesDto)
+        public async Task<IActionResult> RegisterUser([FromBody] UserLoginValuesDto userLoginValuesDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
             // Is user exists with this email?
-            var isExists = await CheckIsUserExistsAsync(userLoginValuesDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userLoginValuesDto.Email);
             if (isExists)
                 return ExistingUser;
 
@@ -105,12 +52,10 @@ namespace BiblioBackend.Controllers
         /// <param name="userLoginValuesDto">The values from which the user will be authenticated</param>
         /// <returns>The token of the authenticated user</returns>
         [HttpPost("authenticate")]
-        public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginValuesDTO userLoginValuesDto)
+        public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginValuesDto userLoginValuesDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
             // Is user exists with this email?
-            var isExists = await CheckIsUserExistsAsync(userLoginValuesDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userLoginValuesDto.Email);
             if (!isExists)
                 return MissingUser;
 
@@ -129,9 +74,7 @@ namespace BiblioBackend.Controllers
         [HttpGet("isauthenticated")]
         public async Task<IActionResult> GetUserIsAuthenticated([FromBody] UserEmailDto userEmailDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
 
@@ -146,15 +89,13 @@ namespace BiblioBackend.Controllers
         /// <returns>The users contact information</returns>
         [Authorize]
         [HttpGet("getcontact")]
-        public async Task<IActionResult> GetUserContact([FromQuery] UserEmailDto userEmailDto)
+        public async Task<IActionResult> GetUserContact([FromBody] UserEmailDto userEmailDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userEmailDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userEmailDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
@@ -168,11 +109,9 @@ namespace BiblioBackend.Controllers
         /// <param name="userEmailDto">The email of the given user</param>
         /// <returns>The users privilege information</returns>
         [HttpGet("getprivilege")]
-        public async Task<IActionResult> GetUserPrivilege([FromQuery] UserEmailDto userEmailDto)
+        public async Task<IActionResult> GetUserPrivilege([FromBody] UserEmailDto userEmailDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
 
@@ -187,15 +126,13 @@ namespace BiblioBackend.Controllers
         /// <returns>All reservations tied to the user</returns>
         [Authorize]
         [HttpGet("getreservations")]
-        public async Task<IActionResult> GetUserReservations([FromQuery] UserEmailDto userEmailDto)
+        public async Task<IActionResult> GetUserReservations([FromBody] UserEmailDto userEmailDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userEmailDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userEmailDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
@@ -210,15 +147,14 @@ namespace BiblioBackend.Controllers
         /// <returns>Selected reservations tied to the user</returns>
         [Authorize]
         [HttpGet("getreservationsselected")]
-        public async Task<IActionResult> GetUserReservationsSelected([FromQuery] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
+        public async Task<IActionResult> GetUserReservationsSelected([FromBody] UserCombinedRequestReservationDto userCombinedRequestReservationDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
             
-            var isExists = await CheckIsUserExistsAsync(userCombinedRequestReservationDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userCombinedRequestReservationDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userCombinedRequestReservationDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userCombinedRequestReservationDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
@@ -233,15 +169,13 @@ namespace BiblioBackend.Controllers
         /// <returns>All loans tied to the user</returns>
         [Authorize]
         [HttpGet("getloans")]
-        public async Task<IActionResult> GetUserLoans([FromQuery] UserEmailDto userEmailDto)
+        public async Task<IActionResult> GetUserLoans([FromBody] UserEmailDto userEmailDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userEmailDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userEmailDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
@@ -256,15 +190,13 @@ namespace BiblioBackend.Controllers
         /// <returns>Selected loans tied to the user</returns>
         [Authorize]
         [HttpGet("getloansselected")]
-        public async Task<IActionResult> GetUserLoansSelected([FromQuery] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
+        public async Task<IActionResult> GetUserLoansSelected([FromBody] UserCombinedRequestLoanDto userCombinedRequestLoanDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userCombinedRequestLoanDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userCombinedRequestLoanDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userCombinedRequestLoanDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userCombinedRequestLoanDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
@@ -279,19 +211,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the action (true for success)</returns>
         [Authorize]
         [HttpPut("putnewcontact")]
-        public async Task<IActionResult> PutUserNewContact([FromQuery] UserModifyContactDTO userModifyContactDto)
+        public async Task<IActionResult> PutUserNewContact([FromBody] UserModifyContactDto userModifyContactDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userModifyContactDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userModifyContactDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userModifyContactDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userModifyContactDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
-            var hasPermssion = await CheckIsUserPermittedAsync(userModifyContactDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userModifyContactDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (hasPermssion)
                 return NoPermission;
 
@@ -306,19 +236,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the action (true for success)</returns>
         [Authorize]
         [HttpPut("putnewemail")]
-        public async Task<IActionResult> PutUserNewEmail([FromQuery] UserModifyLoginDTO userModifyLoginDto)
+        public async Task<IActionResult> PutUserNewEmail([FromBody] UserModifyLoginDto userModifyLoginDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userModifyLoginDto.OldEmail);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userModifyLoginDto.OldEmail);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userModifyLoginDto.OldEmail);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userModifyLoginDto.OldEmail);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
-            var hasPermssion = await CheckIsUserPermittedAsync(userModifyLoginDto.OldEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userModifyLoginDto.OldEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (hasPermssion)
                 return NoPermission;
 
@@ -333,19 +261,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the requested action (true for success)</returns>
         [Authorize]
         [HttpPatch("patchnewreservations")]
-        public async Task<IActionResult> PatchUserNewReservations([FromQuery] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
+        public async Task<IActionResult> PatchUserNewReservations([FromBody] UserCombinedRequestReservationDto userCombinedRequestReservationDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userCombinedRequestReservationDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userCombinedRequestReservationDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userCombinedRequestReservationDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userCombinedRequestReservationDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
-            var hasPermssion = await CheckIsUserPermittedAsync(userCombinedRequestReservationDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userCombinedRequestReservationDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (hasPermssion)
                 return NoPermission;
 
@@ -360,19 +286,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the requested action (true for success)</returns>
         [Authorize]
         [HttpPatch("patchnewloans")]
-        public async Task<IActionResult> PatchUserNewLoans([FromQuery] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
+        public async Task<IActionResult> PatchUserNewLoans([FromBody] UserCombinedRequestLoanDto userCombinedRequestLoanDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userCombinedRequestLoanDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userCombinedRequestLoanDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userCombinedRequestLoanDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userCombinedRequestLoanDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
-            var hasPermssion = await CheckIsUserPermittedAsync(userCombinedRequestLoanDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userCombinedRequestLoanDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (hasPermssion)
                 return NoPermission;
 
@@ -387,19 +311,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the requested action (true for success)</returns>
         [Authorize]
         [HttpPut("putnewpermission")]
-        public async Task<IActionResult> PutUserNewPermission([FromQuery] UserModifyPrivilegeDTO userModifyPrivilegeDto)
+        public async Task<IActionResult> PutUserNewPermission([FromBody] UserModifyPrivilegeDto userModifyPrivilegeDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userModifyPrivilegeDto.UserEmail, userModifyPrivilegeDto.RequesterEmail);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userModifyPrivilegeDto.UserEmail, userModifyPrivilegeDto.RequesterEmail);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userModifyPrivilegeDto.RequesterEmail);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userModifyPrivilegeDto.RequesterEmail);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await CheckIsUserPermittedAsync(userModifyPrivilegeDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userModifyPrivilegeDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (hasPermssion)
                 return NoPermission;
 
@@ -414,19 +336,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the requested action (true for success)</returns>
         [Authorize]
         [HttpDelete("deleteuser")]
-        public async Task<IActionResult> DeleteUser([FromQuery] UserEmailDto userEmailDto)
+        public async Task<IActionResult> DeleteUser([FromBody] UserEmailDto userEmailDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userEmailDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userEmailDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userEmailDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userEmailDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
-            var hasPermssion = await CheckIsUserPermittedAsync(userEmailDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userEmailDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (hasPermssion)
                 return NoPermission;
 
@@ -441,19 +361,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the requested action (true for success)</returns>
         [Authorize]
         [HttpDelete("deletereservations")]
-        public async Task<IActionResult> DeleteUserReservations([FromQuery] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
+        public async Task<IActionResult> DeleteUserReservations([FromBody] UserCombinedRequestReservationDto userCombinedRequestReservationDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userCombinedRequestReservationDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userCombinedRequestReservationDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userCombinedRequestReservationDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userCombinedRequestReservationDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
             
-            var hasPermssion = await CheckIsUserPermittedAsync(userCombinedRequestReservationDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userCombinedRequestReservationDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (hasPermssion)
                 return NoPermission;
 
@@ -468,19 +386,17 @@ namespace BiblioBackend.Controllers
         /// <returns>The result of the requested action (true for success)</returns>
         [Authorize]
         [HttpDelete("deleteloans")]
-        public async Task<IActionResult> DeleteUserLoans([FromQuery] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
+        public async Task<IActionResult> DeleteUserLoans([FromBody] UserCombinedRequestLoanDto userCombinedRequestLoanDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await CheckIsUserExistsAsync(userCombinedRequestLoanDto.Email);
+            var isExists = await UserServiceGeneral.CheckIsUserExistsAsync(_userService, userCombinedRequestLoanDto.Email);
             if (!isExists)
                 return MissingUser;
             
-            var isAuthenticated = await CheckIsUserAuthenticatedAsync(userCombinedRequestLoanDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userCombinedRequestLoanDto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await CheckIsUserPermittedAsync(userCombinedRequestLoanDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userCombinedRequestLoanDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (hasPermssion)
                 return NoPermission;
 

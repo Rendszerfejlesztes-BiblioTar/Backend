@@ -1,6 +1,6 @@
 ﻿namespace BiblioBackend.DataContext.Dtos
 {
-    public class BookDto
+    public class BookValuesDto
     {
         public int Id { get; set; }
         public string? Title { get; set; }
@@ -12,5 +12,7 @@
         public bool IsAvailable { get; set; }
         public string? NumberInLibrary { get; set; }
         public int BookQuality { get; set; }
+
+        public string RequesterEmail { get; set; }
     }
 }

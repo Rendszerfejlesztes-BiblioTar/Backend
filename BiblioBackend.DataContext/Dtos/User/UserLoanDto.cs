@@ -3,7 +3,7 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// <summary>
 /// Provides core information about loans
 /// </summary>
-public class UserLoanDTO
+public class UserLoanDto
 {
     public int? LoanId { get; set; }
     

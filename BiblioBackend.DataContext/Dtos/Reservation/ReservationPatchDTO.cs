@@ -8,5 +8,7 @@
         public DateTime? ReservationDate { get; set; } = DateTime.UtcNow;
         public DateTime? ExpectedStart { get; set; }
         public DateTime? ExpectedEnd { get; set; }
+        
+        public string Email { get; set; }
     }
 }

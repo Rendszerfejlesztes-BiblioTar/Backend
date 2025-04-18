@@ -5,7 +5,7 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// <summary>
 /// Modify the users privilige level
 /// </summary>
-public class UserModifyPrivilegeDTO
+public class UserModifyPrivilegeDto
 {
     public string RequesterEmail { get; set; }
     

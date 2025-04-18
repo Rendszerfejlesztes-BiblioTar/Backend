@@ -7,12 +7,11 @@ namespace BiblioBackend.Services
 {
     public interface IBookService
     {
-        Task<List<BookDto>> GetAllBooksAsync(); // BookDto használata
+        Task<List<BookValuesDto>> GetAllBooksAsync(); // BookDto használata
         Task<Book?> GetBookByIdAsync(int id);
         Task<Book> CreateBookAsync(Book book);
         Task<Book?> UpdateBookAsync(Book book);
         Task<bool> DeleteBookAsync(int id);
-        Task<string> GetTest();
         Task<Book?> UpdateAvailabilityAsync(int id, bool available); // Async suffix egységesítve
         Task<Book?> UpdateQualityAsync(int id, BookQuality bookQuality); // Async suffix egységesítve
         Task<List<Book>> SearchBooksByNameAsync(string title);
@@ -29,10 +28,10 @@ namespace BiblioBackend.Services
             _context = context;
         }
 
-        public async Task<List<BookDto>> GetAllBooksAsync()
+        public async Task<List<BookValuesDto>> GetAllBooksAsync()
         {
             return await _context.Books
-                .Select(b => new BookDto
+                .Select(b => new BookValuesDto
                 {
                     Id = b.Id,
                     Title = b.Title,
@@ -93,11 +92,6 @@ namespace BiblioBackend.Services
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
             return true;
-        }
-
-        public async Task<string> GetTest()
-        {
-            return "test";
         }
 
         public async Task<Book?> UpdateAvailabilityAsync(int id, bool isAvailable)

@@ -13,5 +13,7 @@ namespace BiblioBackend.DataContext.Dtos.Loan
         public DateTime? StartDate { get; set; }
         public DateTime? ExpectedEndDate { get; set; }
         public DateTime? ReturnDate { get; set; }
+        
+        public string UserEmail { get; set; }
     }
 }

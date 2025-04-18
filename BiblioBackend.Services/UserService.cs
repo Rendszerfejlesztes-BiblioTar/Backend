@@ -36,21 +36,21 @@ public interface IUserService
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<UserGetContactDTO> GetUserContactInformationByEmailAsync(string email);
+    Task<UserGetContactDto> GetUserContactInformationByEmailAsync(string email);
     
     /// <summary>
     /// Get the users privilege information based on its email address
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<UserGetPrivilegeLevelDTO> GetUserPrivilegeLevelByEmailAsync(string email);
+    Task<UserGetPrivilegeLevelDto> GetUserPrivilegeLevelByEmailAsync(string email);
     
     /// <summary>
     /// Get the users reservation information based on its email address
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<List<UserReservationDTO>> GetUserReservationsByEmailAsync(string email);
+    Task<List<UserReservationDto>> GetUserReservationsByEmailAsync(string email);
     
     /// <summary>
     /// Get the users reservations by the given IDs
@@ -58,14 +58,14 @@ public interface IUserService
     /// <param name="email">The email address of the user</param>
     /// <param name="userReservationDto">The dto containing the information about the reservations to get</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<List<UserReservationDTO>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDTO> userReservationDto);
+    Task<List<UserReservationDto>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDto> userReservationDto);
     
     /// <summary>
     /// Get the users loan information based on its email address
     /// </summary>
     /// <param name="email">The email address of the user</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<List<UserLoanDTO>> GetUserLoansByEmailAsync(string email);
+    Task<List<UserLoanDto>> GetUserLoansByEmailAsync(string email);
     
     /// <summary>
     /// Get the users loans by the given IDs
@@ -73,7 +73,7 @@ public interface IUserService
     /// <param name="email">The email address of the user</param>
     /// <param name="userLoanDto">The dto containing the information about the loans to get</param>
     /// <returns>A DTO object which contains the requested information</returns>
-    Task<List<UserLoanDTO>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDTO> userLoanDto);
+    Task<List<UserLoanDto>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDto> userLoanDto);
     
     // Put     ------------------------------------------------------------------------------------------------------------------------
     
@@ -82,7 +82,7 @@ public interface IUserService
     /// </summary>
     /// <param name="userModifyContactDto">The DTO from which the user contacts will be changed to</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserContactInformationAsync(UserModifyContactDTO userModifyContactDto);
+    Task<bool> UpdateUserContactInformationAsync(UserModifyContactDto userModifyContactDto);
     
     /// <summary>
     /// Modify the users email information, changing its primary id!!!
@@ -90,7 +90,7 @@ public interface IUserService
     /// </summary>
     /// <param name="userModifyLoginDto">The DTO from which the user email will be changed to</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserLoginAsync(UserModifyLoginDTO userModifyLoginDto);
+    Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userModifyLoginDto);
     
     /// <summary>
     /// Add the reservations from the given DTO to the user
@@ -98,7 +98,7 @@ public interface IUserService
     /// <param name="email">The email of the target user</param>
     /// <param name="userModifyReservationDto">The DTO from which the new reservations are from</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDTO> userModifyReservationDto);
+    Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDto> userModifyReservationDto);
     
     /// <summary>
     /// Add the loans from the given DTO to the user
@@ -106,7 +106,7 @@ public interface IUserService
     /// <param name="email">The email of the target user</param>
     /// <param name="userModifyLoanDto">The DTO from which the new loans are from</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto);
+    Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDto> userModifyLoanDto);
     
     /// <summary>
     /// Changes the users privilege level
@@ -114,7 +114,7 @@ public interface IUserService
     /// </summary>
     /// <param name="userModifyPrivilegeDto">The DTO from which the new privilege is from</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDTO userModifyPrivilegeDto);
+    Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDto userModifyPrivilegeDto);
     
     // Delete   ------------------------------------------------------------------------------------------------------------------------
     
@@ -131,7 +131,7 @@ public interface IUserService
     /// <param name="email">The email of the target user</param>
     /// <param name="userModifyReservationDto">The DTO from which we are removing from the user</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDTO> userModifyReservationDto);
+    Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDto> userModifyReservationDto);
     
     /// <summary>
     /// Remove the loans from the given DTO from the user
@@ -139,7 +139,7 @@ public interface IUserService
     /// <param name="email">The email of the target user</param>
     /// <param name="userModifyLoanDto">The DTO from which we are removing from the user</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto);
+    Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDto> userModifyLoanDto);
     
     // Post     ------------------------------------------------------------------------------------------------------------------------
     /// <summary>
@@ -147,14 +147,14 @@ public interface IUserService
     /// </summary>
     /// <param name="userLoginValuesDto">The DTO contains the users data, from the frontend</param>
     /// <returns>A DTO with their auth token</returns>
-    Task<UserLoginTokenDTO> PostAutenticationAsync(UserLoginValuesDTO userLoginValuesDto);
+    Task<UserLoginTokenDto> PostAutenticationAsync(UserLoginValuesDto userLoginValuesDto);
     
     /// <summary>
     /// Create a user from the DTO
     /// </summary>
     /// <param name="userLoginValuesDto">The DTO contains the users data, from the frontend</param>
     /// <returns>The result of the requested action (true for success)</returns>
-    Task<bool> PostUserCreateAsync(UserLoginValuesDTO userLoginValuesDto);
+    Task<bool> PostUserCreateAsync(UserLoginValuesDto userLoginValuesDto);
 }
 
 public class UserService : IUserService
@@ -194,7 +194,7 @@ public class UserService : IUserService
             return false;
         }
 
-        var currentUserEmail = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+        var currentUserEmail = _httpContextAccessor.HttpContext?.User.Identity?.Name;
         Console.WriteLine($"[UserService::GetUserAuthenticatedAsync] Current user email from token: {currentUserEmail}, Requested email: {email}");
         if (currentUserEmail != email)
         {
@@ -206,14 +206,14 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<UserGetContactDTO> GetUserContactInformationByEmailAsync(string email)
+    public async Task<UserGetContactDto> GetUserContactInformationByEmailAsync(string email)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (user == null)
         {
             // User is invalid or not registered
             Console.WriteLine($"[UserService::GetUserContactInformationByEmailAsync] User not found! Email: {email}");
-            return new UserGetContactDTO()
+            return new UserGetContactDto()
             {
                 FirstName = "",
                 LastName = "",
@@ -222,7 +222,7 @@ public class UserService : IUserService
             };
         }
         // Otherwise, give back real user data
-        return new UserGetContactDTO()
+        return new UserGetContactDto()
         {
             FirstName = user.FirstName,
             LastName = user.LastName,
@@ -231,33 +231,33 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserGetPrivilegeLevelDTO> GetUserPrivilegeLevelByEmailAsync(string email)
+    public async Task<UserGetPrivilegeLevelDto> GetUserPrivilegeLevelByEmailAsync(string email)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         if (user == null)
         {
             // User is invalid, or not registered
             Console.WriteLine($"[UserService::GetUserPrivilegeLevelByEmailAsync] User not found! Email: {email}");
-            return new UserGetPrivilegeLevelDTO()
+            return new UserGetPrivilegeLevelDto()
             {
                 Privilege = PrivilegeLevel.UnRegistered,
                 PrivilegeString = PrivilegeLevelStringify.PrivilegeLevelStrings[PrivilegeLevel.UnRegistered.ToString()]
             };
         }
         // Otherwise, give back real user data
-        return new UserGetPrivilegeLevelDTO()
+        return new UserGetPrivilegeLevelDto()
         {
             Privilege = user.Privilege,
             PrivilegeString = PrivilegeLevelStringify.PrivilegeLevelStrings[user.Privilege.ToString()]
         };
     }
 
-    public async Task<List<UserReservationDTO>> GetUserReservationsByEmailAsync(string email)
+    public async Task<List<UserReservationDto>> GetUserReservationsByEmailAsync(string email)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
-        var result = new List<UserReservationDTO>();
+        var result = new List<UserReservationDto>();
         if (user == null)
         {
             // User is invalid
@@ -275,7 +275,7 @@ public class UserService : IUserService
 
         Parallel.ForEach(reservations, reservation =>
         {
-            result.Add(new UserReservationDTO()
+            result.Add(new UserReservationDto()
             { 
                 ReservationId = reservation.Id,
                 BookId = reservation.BookId,
@@ -289,12 +289,12 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<List<UserReservationDTO>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDTO> userReservationDto)
+    public async Task<List<UserReservationDto>> GetUserSelectedReservationsByEmailAsync(string email, List<UserReservationDto> userReservationDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
         
-        var result = new List<UserReservationDTO>();
+        var result = new List<UserReservationDto>();
         if (user == null)
         {
             // User is invalid
@@ -316,7 +316,7 @@ public class UserService : IUserService
 
         Parallel.ForEach(lookupReservations, reservation =>
         {
-            result.Add(new UserReservationDTO()
+            result.Add(new UserReservationDto()
             { 
                 ReservationId = reservation.Id,
                 BookId = reservation.BookId,
@@ -330,12 +330,12 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<List<UserLoanDTO>> GetUserLoansByEmailAsync(string email)
+    public async Task<List<UserLoanDto>> GetUserLoansByEmailAsync(string email)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
-        var result = new List<UserLoanDTO>();
+        var result = new List<UserLoanDto>();
         if (user == null)
         {
             // User is invalid
@@ -353,7 +353,7 @@ public class UserService : IUserService
 
         Parallel.ForEach(loans, loan =>
         {
-            result.Add(new UserLoanDTO()
+            result.Add(new UserLoanDto()
             { 
                 LoanId = loan.Id,
                 BookId = loan.BookId,
@@ -367,12 +367,12 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<List<UserLoanDTO>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDTO> userLoanDto)
+    public async Task<List<UserLoanDto>> GetUserSelectedLoansByEmailAsync(string email, List<UserLoanDto> userLoanDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
         
-        var result = new List<UserLoanDTO>();
+        var result = new List<UserLoanDto>();
         if (user == null)
         {
             // User is invalid
@@ -394,7 +394,7 @@ public class UserService : IUserService
 
         Parallel.ForEach(lookupLoans, loan =>
         {
-            result.Add(new UserLoanDTO()
+            result.Add(new UserLoanDto()
             { 
                 LoanId = loan.Id,
                 BookId = loan.BookId,
@@ -408,7 +408,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<bool> UpdateUserContactInformationAsync(UserModifyContactDTO userModifyContactDto)
+    public async Task<bool> UpdateUserContactInformationAsync(UserModifyContactDto userModifyContactDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == userModifyContactDto.Email).FirstOrDefaultAsync();
         if (user == null)
@@ -435,7 +435,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> UpdateUserLoginAsync(UserModifyLoginDTO userModifyLoginDto)
+    public async Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userModifyLoginDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == userModifyLoginDto.OldEmail).FirstOrDefaultAsync();
         if (user == null)
@@ -454,7 +454,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDTO> userModifyReservationDto)
+    public async Task<bool> UpdateUserReservationsAsync(string email, List<UserReservationDto> userModifyReservationDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
@@ -501,7 +501,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
+    public async Task<bool> UpdateUserLoansAsync(string email, List<UserLoanDto> userModifyLoanDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
@@ -548,7 +548,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDTO userModifyPrivilegeDto)
+    public async Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDto userModifyPrivilegeDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == userModifyPrivilegeDto.UserEmail).FirstOrDefaultAsync();
         var requester = await _dbContext.Users.Where(u => u.Email == userModifyPrivilegeDto.RequesterEmail).FirstOrDefaultAsync();
@@ -600,7 +600,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDTO> userModifyReservationDto)
+    public async Task<bool> RemoveUserReservationAsync(string email, List<UserReservationDto> userModifyReservationDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Reservations).FirstOrDefaultAsync();
@@ -652,7 +652,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDTO> userModifyLoanDto)
+    public async Task<bool> RemoveUserLoansAsync(string email, List<UserLoanDto> userModifyLoanDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == email)
             .Include(user => user.Loans).FirstOrDefaultAsync();
@@ -704,14 +704,14 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<UserLoginTokenDTO> PostAutenticationAsync(UserLoginValuesDTO userLoginValuesDto)
+    public async Task<UserLoginTokenDto> PostAutenticationAsync(UserLoginValuesDto userLoginValuesDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == userLoginValuesDto.Email).FirstOrDefaultAsync();
         if (user == null)
         {
             // User is invalid
             Console.WriteLine($"[UserService::PostAutenticationAsync] User not found! Email: {userLoginValuesDto.Email}");
-            return new UserLoginTokenDTO()
+            return new UserLoginTokenDto()
             {
                 AuthToken = null
             };
@@ -720,7 +720,7 @@ public class UserService : IUserService
         {
             // Invalid password
             Console.WriteLine($"[UserService::PostAutenticationAsync] User password does not match! Email: {userLoginValuesDto.Email}");
-            return new UserLoginTokenDTO()
+            return new UserLoginTokenDto()
             {
                 AuthToken = null
             };
@@ -755,13 +755,13 @@ public class UserService : IUserService
             signingCredentials: creds);
 
         Console.WriteLine($"[UserService::PostAuthenticationAsync] User authenticated! Email: {userLoginValuesDto.Email}");
-        return new UserLoginTokenDTO
+        return new UserLoginTokenDto
         {
             AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
         };
     }
 
-    public async Task<bool> PostUserCreateAsync(UserLoginValuesDTO userLoginValuesDto)
+    public async Task<bool> PostUserCreateAsync(UserLoginValuesDto userLoginValuesDto)
     {
         var user = await _dbContext.Users.Where(u => u.Email == userLoginValuesDto.Email).FirstOrDefaultAsync();
         if (user != null)
@@ -781,5 +781,66 @@ public class UserService : IUserService
         await _dbContext.SaveChangesAsync();
 
         return true;
+    }
+}
+
+/// <summary>
+/// This class has some methods which should be used for checking some user related information
+/// </summary>
+public static class UserServiceGeneral
+{
+    /// <summary>
+    /// Checks if the given emails are tied to users exists
+    /// </summary>
+    /// <param name="userService">The user constroller instance</param>
+    /// <param name="emails">The users emails</param>
+    /// <returns>True if exists</returns>
+    public static async Task<bool> CheckIsUserExistsAsync(IUserService userService, params string[] emails)
+    {
+        var flag = false;
+        foreach (var email in emails)
+        {
+            flag = await userService.GetUserIsExistsAsync(email);
+            if (!flag) // one of the emails doesnt exists, meaning we dont pass all the checks 100%
+                return false;
+        }
+        return flag;
+    }
+    
+    /// <summary>
+    /// Checks if the given emails are authenticated
+    /// </summary>
+    /// <param name="userService">The user constroller instance</param>
+    /// <param name="emails">The users emails</param>
+    /// <returns>True if authenticated</returns>
+    public static async Task<bool> CheckIsUserAuthenticatedAsync(IUserService userService, params string[] emails)
+    {
+        var flag = false;
+        foreach (var email in emails) // probably only will ever have 1 email in the params, but just in case
+        {
+            flag = await userService.GetUserAuthenticatedAsync(email);
+            if (!flag) // one of the emails doesnt exists, meaning we dont pass all the checks 100%
+                return false;
+        }
+        return flag;
+    }
+    
+    /// <summary>
+    /// Checks if the given permission level is enough to satisfy the needed privileges
+    /// </summary>
+    /// <param name="userService">The user constroller instance</param>
+
+    /// <param name="email">The users email</param>
+    /// <param name="neededPrivileges">The privilege which is needed</param>
+    /// <returns>True if permitted</returns>
+    public static async Task<bool> CheckIsUserPermittedAsync(IUserService userService, string email, params PrivilegeLevel[] neededPrivileges)
+    {
+        PrivilegeLevel actualPrivilege = (await userService.GetUserPrivilegeLevelByEmailAsync(email)).Privilege;
+        PrivilegeLevel merged = neededPrivileges[0];
+        foreach (var level in neededPrivileges) // probably only will ever have 1 email in the params, but just in case
+        {
+            merged |= level;
+        }
+        return (actualPrivilege & merged) != 0;
     }
 }

@@ -3,7 +3,7 @@ namespace BiblioBackend.DataContext.Dtos.User.Post;
 /// <summary>
 /// Stores information used for user authentication or creation
 /// </summary>
-public class UserLoginValuesDTO
+public class UserLoginValuesDto
 {
     public string Email { get; set; }
     

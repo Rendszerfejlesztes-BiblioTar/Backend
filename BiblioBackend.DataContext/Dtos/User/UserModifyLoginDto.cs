@@ -3,7 +3,7 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// <summary>
 /// Used for modifing the users email address and password hash
 /// </summary>
-public class UserModifyLoginDTO
+public class UserModifyLoginDto
 {
     /// <summary>
     /// The email in the database
