@@ -7,5 +7,9 @@ namespace BiblioBackend.DataContext.Dtos.User.Post;
 /// </summary>
 public class UserLoginTokenDto
 {
-    public string? AuthToken { get; set; }
+    public string AccessToken { get; set; } = string.Empty;
+
+    public string RefreshToken { get; set; } = string.Empty;
+
+    public long ExpiresAt { get; set; }
 }

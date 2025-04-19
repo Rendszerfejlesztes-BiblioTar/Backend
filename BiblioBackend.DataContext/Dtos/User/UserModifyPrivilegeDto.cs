@@ -1,4 +1,5 @@
 using BiblioBackend.DataContext.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace BiblioBackend.DataContext.Dtos.User;
 
@@ -7,8 +8,12 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// </summary>
 public class UserModifyPrivilegeDto
 {
-    public string RequesterEmail { get; set; }
-    
-    public string UserEmail { get; set; }
+    [Required, EmailAddress]
+    public string RequesterEmail { get; set; } = string.Empty;
+
+    [Required, EmailAddress]
+    public string UserEmail { get; set; } = string.Empty;
+
+    [Required]
     public PrivilegeLevel NewPrivilege { get; set; }
 }

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BiblioBackend.DataContext.Dtos.User;
 
 /// <summary>
@@ -5,18 +7,12 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// </summary>
 public class UserModifyLoginDto
 {
-    /// <summary>
-    /// The email in the database
-    /// </summary>
-    public string OldEmail { get; set; }
-    
-    /// <summary>
-    /// The email which is not in the database, proper checks must be done!!
-    /// </summary>
-    public string NewEmail { get; set; }
-    
-    /// <summary>
-    /// The optional password change
-    /// </summary>
-    public string? NewPasswordHash { get; set; }
+    [Required, EmailAddress]
+    public string OldEmail { get; set; } = string.Empty;
+
+    [Required, EmailAddress]
+    public string NewEmail { get; set; } = string.Empty;
+
+    [MinLength(8)]
+    public string? NewPassword { get; set; }
 }

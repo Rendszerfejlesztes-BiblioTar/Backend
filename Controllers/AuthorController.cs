@@ -1,9 +1,9 @@
 ﻿using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using BiblioBackend.DataContext.Dtos.Author;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BiblioBackend.Controllers
 {
@@ -19,13 +19,10 @@ namespace BiblioBackend.Controllers
             _authorService = authorService;
             _userService = userService;
         }
-        // ---
-        
+
         private ObjectResult NoAuthor => NotFound("A kért író nem található!");
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehez!");
-        
-        // ---
 
         /// <summary>
         /// Get all authors in the database
@@ -62,15 +59,18 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAuthor([FromBody] AuthorModifyDto authorDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, authorDto.RequesterEmail);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != authorDto.RequesterEmail)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            // only librarian or admin can create new authors
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, authorDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var newAuthor = await _authorService.CreateAuthorAsync(authorDto);
             return CreatedAtAction(nameof(GetAuthorById), new { id = newAuthor.Id }, newAuthor);
         }
@@ -85,16 +85,19 @@ namespace BiblioBackend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAuthor(int id, [FromBody] AuthorModifyDto authorDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, authorDto.RequesterEmail);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != authorDto.RequesterEmail)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, authorDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
-                return NoPermission;
-            
-            var newAuthor = await _authorService.UpdateAuthorAsync(id, authorDto);
 
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
+                return NoPermission;
+
+            var newAuthor = await _authorService.UpdateAuthorAsync(id, authorDto);
             if (newAuthor == null)
                 return NoAuthor;
 
@@ -104,21 +107,25 @@ namespace BiblioBackend.Controllers
         /// <summary>
         /// Delete the specified author
         /// </summary>
-        /// <param name="id">THe id of the author to delete</param>
+        /// <param name="id">The id of the author to delete</param>
         /// <param name="authorPermissionRestrictedActionDto">dto containing extra information</param>
         /// <returns>True if deleted</returns>
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAuthor(int id, [FromBody] AuthorPermissionRestrictedActionDto authorPermissionRestrictedActionDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, authorPermissionRestrictedActionDto.RequesterEmail);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != authorPermissionRestrictedActionDto.RequesterEmail)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, authorPermissionRestrictedActionDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var result = await _authorService.DeleteAuthorAsync(id);
             if (!result)
                 return NoAuthor;
