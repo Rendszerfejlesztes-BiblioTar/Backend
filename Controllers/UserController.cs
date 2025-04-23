@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using BiblioBackend.DataContext.Entities;
 
 namespace BiblioBackend.Controllers
 {
@@ -64,6 +65,37 @@ namespace BiblioBackend.Controllers
             {
                 return Unauthorized(new ApiResponse<UserLoginTokenDto> { Error = ex.Message });
             }
+        }
+
+        [HttpPost("create-admin")]
+        [AllowAnonymous] 
+        public async Task<IActionResult> CreateAdmin([FromBody] UserLoginValuesDto userDto)
+        {
+            if (userDto == null || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
+            {
+                return BadRequest(new { data = (object)null, error = "Email and password are required.", success = false });
+            }
+
+            if (await _userService.GetUserIsExistsAsync(userDto.Email))
+            {
+                return Conflict(new { data = (object)null, error = "User already exists.", success = false });
+            }
+
+            var adminUser = new UserLoginValuesDto
+            {
+                Email = userDto.Email,
+                Password = userDto.Password
+            };
+
+            var user = await _userService.RegisterUserAsync(adminUser);
+            await _userService.UpdateUserPrivilegeAsync(new UserModifyPrivilegeDto
+            {
+                UserEmail = user.Email,
+                RequesterEmail = user.Email, 
+                NewPrivilege = PrivilegeLevel.Admin
+            });
+
+            return Ok(new { data = user, error = (string)null, success = true });
         }
 
         [HttpPost("refresh")]

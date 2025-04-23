@@ -306,13 +306,16 @@ namespace BiblioBackend.Services
                 return false;
             }
 
-            if (user.Email == requester.Email)
+            if (user.Email == requester.Email && user.Privilege == PrivilegeLevel.Registered && userDto.NewPrivilege == PrivilegeLevel.Admin)
+            {
+                _logger.LogInformation("Allowing self-privilege change for initial admin creation: {UserEmail}", userDto.UserEmail);
+            }
+            else if (user.Email == requester.Email)
             {
                 _logger.LogWarning("Privilege update failed: Cannot change own privileges for {UserEmail}", userDto.UserEmail);
                 throw new InvalidOperationException("Cannot change own privileges.");
             }
-
-            if (requester.Privilege > userDto.NewPrivilege)
+            else if (requester.Privilege > userDto.NewPrivilege)
             {
                 _logger.LogWarning("Privilege update failed: Requester {RequesterEmail} cannot elevate privileges above {RequesterPrivilege}", userDto.RequesterEmail, requester.Privilege.ToFriendlyString());
                 throw new InvalidOperationException("Cannot elevate privileges above requester's level.");
