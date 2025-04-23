@@ -190,7 +190,28 @@ async Task SeedDatabaseAsync(AppDbContext dbContext)
         dbContext.Books.AddRange(newBooks);
         await dbContext.SaveChangesAsync();
     }
-
     // Felhasználók, foglalások és kölcsönzési előzmények nem kerülnek itt feltöltésre,
     // hogy a regisztrált felhasználók adatai megmaradjanak
+    
+    var existingUsers = dbContext.Users.Select(b => b.Email).ToHashSet();
+    var usersToAdd = new List<User>
+    {
+        new User
+        {
+            Email = "admin@admin.com",
+            Address = "Admin",
+            FirstName = "Kovács",
+            LastName = "István",
+            PasswordHash = "Admin123",
+            Phone = "062012345678",
+            Privilege = PrivilegeLevel.Admin
+        }
+    };
+    var defaultAdmin = usersToAdd.Where(b => !existingUsers.Contains(b.Email)).ToList();
+    if (defaultAdmin.Any())
+    {
+        dbContext.Users.AddRange(defaultAdmin);
+        await dbContext.SaveChangesAsync();
+    }
+    // Default admin user létrehozása
 }
