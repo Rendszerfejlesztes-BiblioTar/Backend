@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BiblioBackend.DataContext.Dtos.User;
 
 /// <summary>
@@ -5,13 +7,15 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// </summary>
 public class UserModifyContactDto
 {
-    public string Email { get; set; }
-    
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
     public string? FirstName { get; set; }
-    
+
     public string? LastName { get; set; }
-    
+
+    [Phone]
     public string? Phone { get; set; }
-    
+
     public string? Address { get; set; }
 }

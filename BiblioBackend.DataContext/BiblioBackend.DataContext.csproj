@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.2">
         <PrivateAssets>all</PrivateAssets>
@@ -24,6 +25,7 @@
       </PackageReference>
       <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />
+      <PackageReference Include="System.Threading.RateLimiting" Version="9.0.4" />
     </ItemGroup>
 
 </Project>

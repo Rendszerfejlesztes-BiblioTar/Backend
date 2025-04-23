@@ -1,11 +1,11 @@
-﻿using BiblioBackend.BiblioBackend.DataContext.Dtos.Reservation;
-using BiblioBackend.BiblioBackend.Services;
-using BiblioBackend.DataContext.Dtos.Reservation;
-using BiblioBackend.DataContext.Entities;
+﻿using BiblioBackend.DataContext.Dtos.Reservation;
 using BiblioBackend.Services;
+using BiblioBackend.DataContext.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using BiblioBackend.BiblioBackend.DataContext.Dtos.Reservation;
+using BiblioBackend.BiblioBackend.Services;
+using System.Security.Claims;
 
 namespace BiblioBackend.Controllers
 {
@@ -21,31 +21,31 @@ namespace BiblioBackend.Controllers
             _reservationService = reservationService;
             _userService = userService;
         }
-        
-        // ---
-        
+
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehez!");
         private ObjectResult MissingReservation => NotFound("A kért foglalás nem létezik!");
-        
-        // ---
-        
+
         /// <summary>
         /// Get all reservations in the database
         /// </summary>
         /// <returns>A list of reservation dtos</returns>
-        [Authorize] //Since this gives back all the loans in the db currently, basic security measure is that this is only permitted for librarian and up
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllReservationsAsync([FromBody] ReservationGetAllDto reservationGetAllDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, reservationGetAllDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != reservationGetAllDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, reservationGetAllDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var result = await _reservationService.GetAllReservationsAsync();
             return Ok(result);
         }
@@ -59,18 +59,22 @@ namespace BiblioBackend.Controllers
         [HttpGet("user/{email}")]
         public async Task<IActionResult> GetUsersReservationsAsync(string email)
         {
+            var jwtEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(jwtEmail) || jwtEmail != email)
+                return NotLoggedIn;
+
             var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var result = await _reservationService.GetUsersReservationsAsync(email);
             return Ok(result);
         }
-        
+
         /// <summary>
         /// Obtain all related information tied to a reservation
         /// </summary>
@@ -80,18 +84,22 @@ namespace BiblioBackend.Controllers
         [HttpGet("byid")]
         public async Task<IActionResult> GetAllInfoForReservationAsync([FromBody] ReservationGetInfoIdDto reservationGetInfoIdDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, reservationGetInfoIdDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != reservationGetInfoIdDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, reservationGetInfoIdDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var result = await _reservationService.GetAllInfoForReservationAsync(reservationGetInfoIdDto.Id);
             return Ok(result);
         }
-        
+
         /// <summary>
         /// Create a new reservation
         /// </summary>
@@ -101,14 +109,18 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateReservationAsync([FromBody] ReservationPostDTO reservation)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, reservation.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != reservation.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, reservation.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var result = await _reservationService.CreateReservationAsync(reservation);
             return Ok(result);
         }
@@ -123,37 +135,45 @@ namespace BiblioBackend.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateReservationAsync(int id, [FromBody] ReservationPatchDTO reservation)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, reservation.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != reservation.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, reservation.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var result = await _reservationService.UpdateReservationAsync(id, reservation);
             return Ok(result);
         }
-        
+
         /// <summary>
         /// Delete an existing reservation
         /// </summary>
+        /// <param name="id">The id of the reservation to delete</param>
         /// <param name="reservationDeleteDto">Data related to the reservation to delete</param>
         /// <returns>True if deleted</returns>
         [Authorize]
-        [HttpDelete]
-        public async Task<IActionResult> DeleteReservationAsync([FromBody] ReservationDeleteDto reservationDeleteDto)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteReservationAsync(int id, [FromBody] ReservationDeleteDto reservationDeleteDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, reservationDeleteDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != reservationDeleteDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, reservationDeleteDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
-                return NoPermission;
-            
-            var result = await _reservationService.DeleteReservationAsync(reservationDeleteDto.Id);
 
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
+                return NoPermission;
+
+            var result = await _reservationService.DeleteReservationAsync(id);
             if (!result)
                 return MissingReservation;
 

@@ -1,9 +1,9 @@
 ﻿using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using BiblioBackend.DataContext.Dtos.Category;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BiblioBackend.Controllers
 {
@@ -19,19 +19,15 @@ namespace BiblioBackend.Controllers
             _categoryService = categoryService;
             _userService = userService;
         }
-        
-        // ---
-        
+
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehez!");
         private ObjectResult MissingCategory => NotFound("A kért kategória nem létezik!");
-        
-        // ---
 
         /// <summary>
         /// List of all valid book categories
         /// </summary>
-        /// <returns>A dto list containting every book category</returns>
+        /// <returns>A dto list containing every book category</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
@@ -63,14 +59,18 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryModifyDto categoryDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, categoryDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != categoryDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, categoryDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
+
             var newCategory = await _categoryService.CreateCategoryAsync(categoryDto);
             return CreatedAtAction(nameof(GetCategoryById), new { id = newCategory.Id }, newCategory);
         }
@@ -85,16 +85,19 @@ namespace BiblioBackend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryModifyDto categoryDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, categoryDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != categoryDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, categoryDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var newCategory = await _categoryService.UpdateCategoryAsync(id, categoryDto);
 
+            var newCategory = await _categoryService.UpdateCategoryAsync(id, categoryDto);
             if (newCategory == null)
                 return MissingCategory;
 
@@ -104,21 +107,26 @@ namespace BiblioBackend.Controllers
         /// <summary>
         /// Delete a given category
         /// </summary>
+        /// <param name="id">The id of the category to delete</param>
         /// <param name="categoryDeleteDto">The dto to do the deletion from</param>
         /// <returns>True if success</returns>
         [Authorize]
-        [HttpDelete]
-        public async Task<IActionResult> DeleteCategory([FromBody] CategoryDeleteDto categoryDeleteDto)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id, [FromBody] CategoryDeleteDto categoryDeleteDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, categoryDeleteDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != categoryDeleteDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, categoryDeleteDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var result = await _categoryService.DeleteCategoryAsync(categoryDeleteDto.Id);
+
+            var result = await _categoryService.DeleteCategoryAsync(id);
             if (!result)
                 return MissingCategory;
 
@@ -126,4 +134,3 @@ namespace BiblioBackend.Controllers
         }
     }
 }
-

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using BiblioBackend.DataContext.Dtos.Loan;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BiblioBackend.Controllers
 {
@@ -18,33 +19,33 @@ namespace BiblioBackend.Controllers
             _service = loanService;
             _userService = userService;
         }
-        
-        // ---
-        
+
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehez!");
         private ObjectResult MissingLoan => NotFound("A kért kölcsön nem létezik!");
-        
-        // ---
 
         /// <summary>
         /// Get all loans in database
         /// </summary>
         /// <returns>A list of every single loan</returns>
-        [Authorize] //Since this gives back all the loans in the db currently, basic security measure is that this is only permitted for librarian and up
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllLoans([FromBody] LoanGetAllDto loanGetAllDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, loanGetAllDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != loanGetAllDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, loanGetAllDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var Loans = await _service.GetAllLoansAsync();
-            return Ok(Loans);
+
+            var loans = await _service.GetAllLoansAsync();
+            return Ok(loans);
         }
 
         /// <summary>
@@ -56,16 +57,20 @@ namespace BiblioBackend.Controllers
         [HttpGet("{userEmail}")]
         public async Task<IActionResult> GetLoansById(string userEmail)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, userEmail);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != userEmail)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var Loans = await _service.GetLoansByUserIdAsync(userEmail);
-            return Ok(Loans);
+
+            var loans = await _service.GetLoansByUserIdAsync(userEmail);
+            return Ok(loans);
         }
 
         /// <summary>
@@ -77,16 +82,20 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateLoan([FromBody] LoanPostDTO loanDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, loanDto.UserEmail);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != loanDto.UserEmail)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, loanDto.UserEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var Loan = await _service.CreateLoanAsync(loanDto);
-            return CreatedAtAction(nameof(CreateLoan), loanDto);
+
+            var loan = await _service.CreateLoanAsync(loanDto);
+            return CreatedAtAction(nameof(GetLoansById), new { userEmail = loanDto.UserEmail }, loan);
         }
 
         /// <summary>
@@ -99,16 +108,19 @@ namespace BiblioBackend.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoanPatchDto patchDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, patchDto.UserEmail);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != patchDto.UserEmail)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, patchDto.UserEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
-                return NoPermission;
-            
-            var newLoan = await _service.UpdateLoanAsync(id, patchDto);
 
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
+                return NoPermission;
+
+            var newLoan = await _service.UpdateLoanAsync(id, patchDto);
             if (newLoan == null)
                 return MissingLoan;
 
@@ -118,22 +130,26 @@ namespace BiblioBackend.Controllers
         /// <summary>
         /// Delete a loan
         /// </summary>
+        /// <param name="id">The id of the loan to delete</param>
         /// <param name="loanDeleteDto">The dto to do the deletion from</param>
         /// <returns>True if deleted</returns>
         [Authorize]
-        [HttpDelete]
-        public async Task<IActionResult> DeleteLoan([FromBody] LoanDeleteDto loanDeleteDto)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLoan(int id, [FromBody] LoanDeleteDto loanDeleteDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, loanDeleteDto.Email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != loanDeleteDto.Email)
+                return NotLoggedIn;
+
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
             if (!isAuthenticated)
                 return NotLoggedIn;
-            
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, loanDeleteDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (hasPermssion)
-                return NoPermission;
-            
-            var result = await _service.DeleteLoanAsync(loanDeleteDto.Id);
 
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+            if (!hasPermission)
+                return NoPermission;
+
+            var result = await _service.DeleteLoanAsync(id);
             if (!result)
                 return MissingLoan;
 

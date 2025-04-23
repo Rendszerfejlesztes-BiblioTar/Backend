@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BiblioBackend.DataContext.Dtos.User.Post;
 
 /// <summary>
@@ -5,10 +7,9 @@ namespace BiblioBackend.DataContext.Dtos.User.Post;
 /// </summary>
 public class UserLoginValuesDto
 {
-    public string Email { get; set; }
-    
-    /// <summary>
-    /// Hashed on the frontend? should not send password in plaintext!!!!
-    /// </summary>
-    public string PasswordHash { get; set; }
+    [Required, EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, MinLength(8)]
+    public string Password { get; set; } = string.Empty;
 }
