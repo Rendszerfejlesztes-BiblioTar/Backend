@@ -52,23 +52,23 @@ namespace BiblioBackend.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserLoginTokenDto>))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserLoginTokenDto>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserLoginDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserLoginDto>))]
         public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginValuesDto userDto)
         {
             try
             {
                 var result = await _userService.AuthenticateUserAsync(userDto);
-                return Ok(new ApiResponse<UserLoginTokenDto> { Data = result });
+                return Ok(new ApiResponse<UserLoginDto> { Data = result });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new ApiResponse<UserLoginTokenDto> { Error = ex.Message });
+                return Unauthorized(new ApiResponse<UserLoginDto> { Error = ex.Message });
             }
         }
 
         [HttpPost("create-admin")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<IActionResult> CreateAdmin([FromBody] UserLoginValuesDto userDto)
         {
             if (userDto == null || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
@@ -100,18 +100,18 @@ namespace BiblioBackend.Controllers
 
         [HttpPost("refresh")]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserLoginTokenDto>))]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserLoginTokenDto>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserLoginDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserLoginDto>))]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
         {
             try
             {
                 var result = await _userService.RefreshTokenAsync(refreshTokenDto);
-                return Ok(new ApiResponse<UserLoginTokenDto> { Data = result });
+                return Ok(new ApiResponse<UserLoginDto> { Data = result });
             }
             catch (SecurityTokenException ex)
             {
-                return Unauthorized(new ApiResponse<UserLoginTokenDto> { Error = ex.Message });
+                return Unauthorized(new ApiResponse<UserLoginDto> { Error = ex.Message });
             }
         }
 
@@ -243,6 +243,7 @@ namespace BiblioBackend.Controllers
         [HttpDelete("{email}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
         public async Task<IActionResult> DeleteUser(string email)
         {
@@ -251,6 +252,44 @@ namespace BiblioBackend.Controllers
                 var result = await _userService.DeleteUserAsync(email);
                 if (!result)
                     return NotFound(new ApiResponse<bool> { Error = $"User with email {email} not found." });
+                return Ok(new ApiResponse<bool> { Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
+        }
+        
+        [Authorize(Policy = "AdminAccess")]
+        [HttpGet("get-all-users")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<List<UserDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> GetAllRegisteredUsers()
+        {
+            try
+            {
+                var result = await _userService.GetAllRegisteredUsersAsync();
+                if (result.Count <= 0)
+                    return NotFound(new ApiResponse<bool> { Error = $"No registered users have been found!" });
+                return Ok(new ApiResponse<List<UserDto>> { Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
+        }
+        
+        [AllowAnonymous]
+        [HttpPost("create-default-admin")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> CreateDefaultAdminUser()
+        {
+            try
+            {
+                var result = await _userService.CreateDefaultAdmin();
                 return Ok(new ApiResponse<bool> { Data = result });
             }
             catch (Exception ex)

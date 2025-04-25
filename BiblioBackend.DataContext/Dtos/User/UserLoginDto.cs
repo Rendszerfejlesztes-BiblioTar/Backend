@@ -5,11 +5,13 @@ namespace BiblioBackend.DataContext.Dtos.User.Post;
 /// <summary>
 /// Stores information used for user authentication
 /// </summary>
-public class UserLoginTokenDto
+public class UserLoginDto
 {
     public string AccessToken { get; set; } = string.Empty;
 
     public string RefreshToken { get; set; } = string.Empty;
 
-    public long ExpiresAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    
+    public UserDto? User { get; set; }
 }

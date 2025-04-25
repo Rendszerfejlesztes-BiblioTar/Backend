@@ -22,10 +22,12 @@ namespace BiblioBackend.Services
     public interface IUserService
     {
         Task<UserDto> RegisterUserAsync(UserLoginValuesDto userDto);
-        Task<UserLoginTokenDto> AuthenticateUserAsync(UserLoginValuesDto userDto);
-        Task<UserLoginTokenDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
+        Task<bool> CreateDefaultAdmin();
+        Task<UserLoginDto> AuthenticateUserAsync(UserLoginValuesDto userDto);
+        Task<UserLoginDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> RevokeTokenAsync(string email);
         Task<UserDto> GetUserAsync(string email);
+        Task<List<UserDto>> GetAllRegisteredUsersAsync();
         Task<bool> UpdateUserContactAsync(UserModifyContactDto userDto);
         Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userDto);
         Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDto userDto);
@@ -95,7 +97,37 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<UserLoginTokenDto> AuthenticateUserAsync(UserLoginValuesDto userDto)
+        public async Task<bool> CreateDefaultAdmin()
+        {
+            const string defaultEmail = "admin@example.com";
+
+            var exists = _dbContext.Users.Any(u => u.Email == defaultEmail);
+            _logger.LogInformation("No default admin was created, already exists!");
+            if (exists)
+                return false;
+            
+            const string defaultAddress = "8000 Veszprém, József Attila Utca 1";
+            const string defaultFirstName = "Kovács";
+            const string defaultLastName = "István";
+            const string defaultPhone = "06123456789";
+            const string defaultPass = "Admin123";
+            
+            _dbContext.Users.Add(new User()
+            {
+                Email = defaultEmail,
+                Address = defaultAddress,
+                FirstName = defaultFirstName,
+                LastName = defaultLastName,
+                Phone = defaultPhone,
+                Privilege = PrivilegeLevel.Admin,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(defaultPass),
+            });
+            _logger.LogInformation("Created the default admin user.");
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<UserLoginDto> AuthenticateUserAsync(UserLoginValuesDto userDto)
         {
             if (userDto == null || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
             {
@@ -121,15 +153,24 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("User authenticated successfully: {Email}", userDto.Email);
 
-            return new UserLoginTokenDto
+            return new UserLoginDto
             {
                 AccessToken = token,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])).ToUnixTimeSeconds()
+                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])),
+                User = new UserDto()
+                {
+                    Address = user.Address,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Phone = user.Phone,
+                    Privilege = user.Privilege
+                }
             };
         }
 
-        public async Task<UserLoginTokenDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto)
+        public async Task<UserLoginDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto)
         {
             if (refreshTokenDto == null || string.IsNullOrEmpty(refreshTokenDto.RefreshToken))
             {
@@ -155,11 +196,11 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("Token refreshed successfully for user: {Email}", user.Email);
 
-            return new UserLoginTokenDto
+            return new UserLoginDto
             {
                 AccessToken = token,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])).ToUnixTimeSeconds()
+                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"]))
             };
         }
 
@@ -218,6 +259,20 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("User retrieved successfully: {Email}", email);
             return user;
+        }
+
+        public async Task<List<UserDto>> GetAllRegisteredUsersAsync()
+        {
+            var users = await _dbContext.Users.Where(u => u.Privilege == PrivilegeLevel.Registered).ToListAsync();
+            return users.ConvertAll(c => new UserDto()
+            {
+                Email = c.Email,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                Phone = c.Phone,
+                Address = c.Address,
+                Privilege = c.Privilege
+            });
         }
 
         public async Task<bool> UpdateUserContactAsync(UserModifyContactDto userDto)
