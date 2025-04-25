@@ -283,18 +283,18 @@ namespace BiblioBackend.Controllers
         
         [AllowAnonymous]
         [HttpPost("create-default-admin")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<DefaultAdminDto>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<DefaultAdminDto>))]
         public async Task<IActionResult> CreateDefaultAdminUser()
         {
             try
             {
                 var result = await _userService.CreateDefaultAdmin();
-                return Ok(new ApiResponse<bool> { Data = result });
+                return Ok(new ApiResponse<DefaultAdminDto> { Data = result });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+                return BadRequest(new ApiResponse<DefaultAdminDto> { Error = ex.Message });
             }
         }
     }

@@ -22,7 +22,7 @@ namespace BiblioBackend.Services
     public interface IUserService
     {
         Task<UserDto> RegisterUserAsync(UserLoginValuesDto userDto);
-        Task<bool> CreateDefaultAdmin();
+        Task<DefaultAdminDto> CreateDefaultAdmin();
         Task<UserLoginDto> AuthenticateUserAsync(UserLoginValuesDto userDto);
         Task<UserLoginDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> RevokeTokenAsync(string email);
@@ -97,14 +97,16 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<bool> CreateDefaultAdmin()
+        public async Task<DefaultAdminDto?> CreateDefaultAdmin()
         {
             const string defaultEmail = "admin@example.com";
 
             var exists = _dbContext.Users.Any(u => u.Email == defaultEmail);
-            _logger.LogInformation("No default admin was created, already exists!");
             if (exists)
-                return false;
+            {
+                _logger.LogInformation("No default admin was created, already exists!");
+                return null;
+            }
             
             const string defaultAddress = "8000 Veszprém, József Attila Utca 1";
             const string defaultFirstName = "Kovács";
@@ -124,7 +126,11 @@ namespace BiblioBackend.Services
             });
             _logger.LogInformation("Created the default admin user.");
             await _dbContext.SaveChangesAsync();
-            return true;
+            return new DefaultAdminDto
+            {
+                Email = defaultEmail,
+                Password = defaultPass
+            };
         }
 
         public async Task<UserLoginDto> AuthenticateUserAsync(UserLoginValuesDto userDto)
