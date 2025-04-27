@@ -1,31 +1,31 @@
-using BiblioBackend.BiblioBackend.Services;
 using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
+using AspNetCoreRateLimit;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using BiblioBackend.BiblioBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Preserve PascalCase for frontend compatibility
+    });
 
-// Adatbázis kontextus regisztrálása
+// Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowLocalhost",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:3000")
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
-});
-
-// Szolgáltatások regisztrálása
+// Add Services
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -33,26 +33,103 @@ builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 
+// Add HttpContextAccessor for accessing HTTP context in services
+builder.Services.AddHttpContextAccessor();
 
-// Swagger konfiguráció
+// Add Logging
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+});
+
+// Add JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
+// Add Authorization Policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("UserAccess", policy =>
+        policy.RequireRole(
+            PrivilegeLevel.Registered.ToString(),
+            PrivilegeLevel.Librarian.ToString(),
+            PrivilegeLevel.Admin.ToString()));
+    options.AddPolicy("AdminAccess", policy =>
+        policy.RequireRole(PrivilegeLevel.Admin.ToString()));
+});
+
+// Add CORS for frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+
+// Add Rate Limiting with AspNetCoreRateLimit
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+
+// Add Swagger with JWT support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Bibliotár API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter JWT with Bearer into field",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
 });
 
 var app = builder.Build();
 
-// Adatbázis inicializálása és példa adatok feltöltése
+// Initialize database and seed data
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    // Biztosítjuk, hogy az adatbázis létezzen (migrációk alapján)
-    dbContext.Database.Migrate();
-
-    // Példa adatok feltöltése
-    await SeedDatabaseAsync(dbContext);
+    dbContext.Database.Migrate(); // Apply migrations
+    await SeedDatabaseAsync(dbContext); // Seed Authors, Categories, Books
 }
 
 // Configure the HTTP request pipeline.
@@ -62,21 +139,32 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bibliotár API v1"));
 }
 
-app.UseCors("AllowLocalhost");
 app.UseHttpsRedirection();
+app.UseCors("AllowLocalhost");
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseIpRateLimiting(); // Use AspNetCoreRateLimit middleware
 app.MapControllers();
+
+// Global Exception Handling to prevent HTTP 500 errors
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { Error = "An unexpected error occurred." });
+    });
+});
 
 app.Run();
 
-// Segédfüggvény az adatbázis feltöltéséhez
+// Seed database with example data
 async Task SeedDatabaseAsync(AppDbContext dbContext)
 {
-    // Változók deklarálása a metódus elején
     List<Author> authors = dbContext.Authors.ToList();
     List<Category> categories = dbContext.Categories.ToList();
 
-    // Szerzők feltöltése, ha még nincsenek
     if (!authors.Any())
     {
         authors = new List<Author>
@@ -89,7 +177,6 @@ async Task SeedDatabaseAsync(AppDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    // Kategóriák feltöltése, ha még nincsenek
     if (!categories.Any())
     {
         categories = new List<Category>
@@ -102,7 +189,6 @@ async Task SeedDatabaseAsync(AppDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    // Könyvek feltöltése, csak ha új könyv (cím alapján ellenőrizve)
     var existingBookTitles = dbContext.Books.Select(b => b.Title).ToHashSet();
     var booksToAdd = new List<Book>
     {
@@ -141,7 +227,6 @@ async Task SeedDatabaseAsync(AppDbContext dbContext)
         dbContext.Books.AddRange(newBooks);
         await dbContext.SaveChangesAsync();
     }
-
     // Felhasználók, foglalások és kölcsönzési előzmények nem kerülnek itt feltöltésre,
     // hogy a regisztrált felhasználók adatai megmaradjanak
 }

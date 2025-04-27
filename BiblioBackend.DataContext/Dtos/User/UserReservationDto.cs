@@ -3,7 +3,7 @@ namespace BiblioBackend.DataContext.Dtos.User;
 /// <summary>
 /// Provides the reservations of the given user
 /// </summary>
-public class UserReservationDTO
+public class UserReservationDto
 {
     public int? ReservationId { get; set; }
     

@@ -1,22 +1,28 @@
-namespace BiblioBackend.DataContext.Entities;
+using System.Collections.Generic;
 
-[Flags]
-public enum PrivilegeLevel
+namespace BiblioBackend.DataContext.Entities
 {
-    Admin = 0b0001,
-    Librarian = 0b0010,
-    Registered = 0b0100,
-    UnRegistered = 0b1000
-}
+    public enum PrivilegeLevel
+    {
+        Admin,
+        Librarian,
+        Registered,
+        UnRegistered
+    }
 
-public static class PrivilegeLevelStringify
-{
-    public static Dictionary<string, string> PrivilegeLevelStrings =>
-        new()
+    public static class PrivilegeLevelExtensions
+    {
+        private static readonly Dictionary<PrivilegeLevel, string> PrivilegeLevelStrings = new()
         {
-            {PrivilegeLevel.Admin.ToString(), "Adminisztrátor"},
-            {PrivilegeLevel.Librarian.ToString(), "Könyvtáros"},
-            {PrivilegeLevel.Registered.ToString(), "Regisztrált Felhasználó"},
-            {PrivilegeLevel.UnRegistered.ToString(), "Nem Regisztrált Felhasználó"},
+            { PrivilegeLevel.Admin, "Administrator" },
+            { PrivilegeLevel.Librarian, "Librarian" },
+            { PrivilegeLevel.Registered, "Registered User" },
+            { PrivilegeLevel.UnRegistered, "Unregistered User" }
         };
+
+        public static string ToFriendlyString(this PrivilegeLevel privilege)
+        {
+            return PrivilegeLevelStrings.TryGetValue(privilege, out var value) ? value : privilege.ToString();
+        }
+    }
 }

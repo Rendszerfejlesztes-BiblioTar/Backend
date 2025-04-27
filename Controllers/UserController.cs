@@ -1,12 +1,22 @@
-﻿using BiblioBackend.DataContext.Dtos.User;
+﻿using BiblioBackend.BiblioBackend.DataContext.Dtos.User;
+using BiblioBackend.DataContext.Dtos;
 using BiblioBackend.DataContext.Dtos.User.Post;
+using BiblioBackend.DataContext.Dtos.User;
 using BiblioBackend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using BiblioBackend.DataContext.Entities;
 
 namespace BiblioBackend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
+    [Produces("application/json")]
+    [EnableRateLimiting("auth")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -16,362 +26,276 @@ namespace BiblioBackend.Controllers
             _userService = userService;
         }
 
-        /// <summary>
-        /// Registers the user
-        /// </summary>
-        /// <param name="userLoginValuesDto">The values from which the new user will be created</param>
-        /// <returns>The requested actions result (true for success)</returns>
+        public class ApiResponse<T>
+        {
+            public T? Data { get; set; }
+            public string? Error { get; set; }
+            public bool Success => string.IsNullOrEmpty(Error);
+        }
+
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterUser([FromBody] UserLoginValuesDTO userLoginValuesDto)
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ApiResponse<UserDto>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<UserDto>))]
+        public async Task<IActionResult> RegisterUser([FromBody] UserLoginValuesDto userDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                var result = await _userService.RegisterUserAsync(userDto);
+                return CreatedAtAction(nameof(GetUser), new { email = result.Email }, new ApiResponse<UserDto> { Data = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<UserDto> { Error = ex.Message });
+            }
+        }
 
-            // Is user exists with this email?
-            var isExists = await _userService.GetUserIsExistsAsync(userLoginValuesDto.Email);
-            if (isExists)
-                return BadRequest("Ez az email már regisztrálva van.");
+        [HttpPost("login")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserLoginDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserLoginDto>))]
+        public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginValuesDto userDto)
+        {
+            try
+            {
+                var result = await _userService.AuthenticateUserAsync(userDto);
+                return Ok(new ApiResponse<UserLoginDto> { Data = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new ApiResponse<UserLoginDto> { Error = ex.Message });
+            }
+        }
 
-            var result = await _userService.PostUserCreateAsync(userLoginValuesDto);
-            return Ok(result);
+        [HttpPost("create-admin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateAdmin([FromBody] UserLoginValuesDto userDto)
+        {
+            if (userDto == null || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
+            {
+                return BadRequest(new { data = (object)null, error = "Email and password are required.", success = false });
+            }
+
+            if (await _userService.GetUserIsExistsAsync(userDto.Email))
+            {
+                return Conflict(new { data = (object)null, error = "User already exists.", success = false });
+            }
+
+            var adminUser = new UserLoginValuesDto
+            {
+                Email = userDto.Email,
+                Password = userDto.Password
+            };
+
+            var user = await _userService.RegisterUserAsync(adminUser);
+            await _userService.UpdateUserPrivilegeAsync(new UserModifyPrivilegeDto
+            {
+                UserEmail = user.Email,
+                RequesterEmail = user.Email, 
+                NewPrivilege = PrivilegeLevel.Admin
+            });
+
+            return Ok(new { data = user, error = (string)null, success = true });
+        }
+
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserLoginDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserLoginDto>))]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
+        {
+            try
+            {
+                var result = await _userService.RefreshTokenAsync(refreshTokenDto);
+                return Ok(new ApiResponse<UserLoginDto> { Data = result });
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new ApiResponse<UserLoginDto> { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "UserAccess")]
+        [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> Logout()
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized(new ApiResponse<bool> { Error = "User is not authenticated." });
+
+            try
+            {
+                var result = await _userService.RevokeTokenAsync(email);
+                return Ok(new ApiResponse<bool> { Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "UserAccess")]
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<UserDto>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<UserDto>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<UserDto>))]
+        public async Task<IActionResult> GetUser()
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized(new ApiResponse<UserDto> { Error = "User is not authenticated." });
+
+            try
+            {
+                var result = await _userService.GetUserAsync(email);
+                return Ok(new ApiResponse<UserDto> { Data = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<UserDto> { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "UserAccess")]
+        [HttpPut("contact")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> UpdateUserContact([FromBody] UserModifyContactDto userDto)
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != userDto.Email)
+                return Unauthorized(new ApiResponse<bool> { Error = "User is not authorized to update this contact." });
+
+            try
+            {
+                var result = await _userService.UpdateUserContactAsync(userDto);
+                return Ok(new ApiResponse<bool> { Data = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<bool> { Error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "UserAccess")]
+        [HttpPut("login")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> UpdateUserLogin([FromBody] UserModifyLoginDto userDto)
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email) || email != userDto.OldEmail)
+                return Unauthorized(new ApiResponse<bool> { Error = "User is not authorized to update this login." });
+
+            try
+            {
+                var result = await _userService.UpdateUserLoginAsync(userDto);
+                return Ok(new ApiResponse<bool> { Data = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponse<bool> { Error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "AdminAccess")]
+        [HttpPut("privilege")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> UpdateUserPrivilege([FromBody] UserModifyPrivilegeDto userDto)
+        {
+            var requesterEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(requesterEmail))
+                return Unauthorized(new ApiResponse<bool> { Error = "Requester is not authenticated." });
+
+            userDto.RequesterEmail = requesterEmail;
+
+            try
+            {
+                var result = await _userService.UpdateUserPrivilegeAsync(userDto);
+                if (!result)
+                    return NotFound(new ApiResponse<bool> { Error = "User or requester not found." });
+                return Ok(new ApiResponse<bool> { Data = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
+        }
+
+        [Authorize(Policy = "AdminAccess")]
+        [HttpDelete("{email}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> DeleteUser(string email)
+        {
+            try
+            {
+                var result = await _userService.DeleteUserAsync(email);
+                if (!result)
+                    return NotFound(new ApiResponse<bool> { Error = $"User with email {email} not found." });
+                return Ok(new ApiResponse<bool> { Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
         }
         
-        /// <summary>
-        /// Authenticate the user
-        /// </summary>
-        /// <param name="userLoginValuesDto">The values from which the user will be authenticated</param>
-        /// <returns>The token of the authenticated user</returns>
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> AuthenticateUser([FromBody] UserLoginValuesDTO userLoginValuesDto)
+        [Authorize(Policy = "AdminAccess")]
+        [HttpGet("get-all-users")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<List<UserDto>>))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
+        public async Task<IActionResult> GetAllRegisteredUsers()
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // Is user exists with this email?
-            var isExists = await _userService.GetUserIsExistsAsync(userLoginValuesDto.Email);
-            if (!isExists)
-                return BadRequest("A felhasználó nem létezik.");
-
-            var result = await _userService.PostAutenticationAsync(userLoginValuesDto);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Retrieves the user, where the given email is tied to
-        /// </summary>
-        /// <param name="userEmailDto">The email of the given user</param>
-        /// <returns>The users contact information</returns>
-        [HttpGet("getcontact")]
-        public async Task<IActionResult> GetUserContact([FromBody] UserEmailDto userEmailDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.GetUserContactInformationByEmailAsync(userEmailDto.Email);
-            return Ok(result);
+            try
+            {
+                var result = await _userService.GetAllRegisteredUsersAsync();
+                if (result.Count <= 0)
+                    return NotFound(new ApiResponse<bool> { Error = $"No registered users have been found!" });
+                return Ok(new ApiResponse<List<UserDto>> { Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<bool> { Error = ex.Message });
+            }
         }
         
-        /// <summary>
-        /// Check if the given user is authenticated or not
-        /// </summary>
-        /// <param name="userEmailDto">The email of the given user</param>
-        /// <returns>True if the user is authenticated</returns>
-        [HttpGet("isauthenticated")]
-        public async Task<IActionResult> GetUserIsAuthenticated([FromBody] UserEmailDto userEmailDto)
+        [AllowAnonymous]
+        [HttpPost("create-default-admin")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<DefaultAdminDto>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<DefaultAdminDto>))]
+        public async Task<IActionResult> CreateDefaultAdminUser()
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-
-            var result = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Get the priviliges of a given user
-        /// </summary>
-        /// <param name="userEmailDto">The email of the given user</param>
-        /// <returns>The users privilege information</returns>
-        [HttpGet("getprivilege")]
-        public async Task<IActionResult> GetUserPrivilege([FromBody] UserEmailDto userEmailDto)
-        {
-            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-
-            var result = await _userService.GetUserPrivilegeLevelByEmailAsync(userEmailDto.Email);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Get all the users reservation information
-        /// </summary>
-        /// <param name="userEmailDto">The email of the given user</param>
-        /// <returns>All reservations tied to the user</returns>
-        [HttpGet("getreservations")]
-        public async Task<IActionResult> GetUserReservations([FromBody] UserEmailDto userEmailDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.GetUserReservationsByEmailAsync(userEmailDto.Email);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Get some of the users reservation information
-        /// </summary>
-        /// <param name="userCombinedRequestReservationDto">The dto containing information about the needed data</param>
-        /// <returns>Selected reservations tied to the user</returns>
-        [HttpGet("getreservationsselected")]
-        public async Task<IActionResult> GetUserReservationsSelected([FromBody] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userCombinedRequestReservationDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userCombinedRequestReservationDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.GetUserSelectedReservationsByEmailAsync(userCombinedRequestReservationDto.Email, userCombinedRequestReservationDto.UserReservationDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Get all the users loan information
-        /// </summary>
-        /// <param name="userEmailDto">The email of the given user</param>
-        /// <returns>All loans tied to the user</returns>
-        [HttpGet("getloans")]
-        public async Task<IActionResult> GetUserLoans([FromBody] UserEmailDto userEmailDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-            
-            var result = await _userService.GetUserLoansByEmailAsync(userEmailDto.Email);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Get some of the users loan information
-        /// </summary>
-        /// <param name="userCombinedRequestLoanDto">The dto containing information about the needed data</param>
-        /// <returns>Selected loans tied to the user</returns>
-        [HttpGet("getloansselected")]
-        public async Task<IActionResult> GetUserLoansSelected([FromBody] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userCombinedRequestLoanDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userCombinedRequestLoanDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.GetUserSelectedLoansByEmailAsync(userCombinedRequestLoanDto.Email, userCombinedRequestLoanDto.UserLoanDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Change the users contact information
-        /// </summary>
-        /// <param name="userModifyContactDto">The dto from which the contact information will be updated from</param>
-        /// <returns>The result of the action (true for success)</returns>
-        [HttpPut("setnewcontact")]
-        public async Task<IActionResult> PutUserNewContact([FromBody] UserModifyContactDTO userModifyContactDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userModifyContactDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userModifyContactDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.UpdateUserContactInformationAsync(userModifyContactDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Register a new email for the given user
-        /// </summary>
-        /// <param name="userModifyLoginDto">The dto from which the information will be updated from</param>
-        /// <returns>The result of the action (true for success)</returns>
-        [HttpPut("setnewemail")]
-        public async Task<IActionResult> PutUserNewEmail([FromBody] UserModifyLoginDTO userModifyLoginDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userModifyLoginDto.OldEmail);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userModifyLoginDto.OldEmail);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.UpdateUserLoginAsync(userModifyLoginDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Add new reservations to the given user
-        /// </summary>
-        /// <param name="userCombinedRequestReservationDto">The dto list from which the reservations will be created</param>
-        /// <returns>The result of the requested action (true for success)</returns>
-        [HttpPut("setnewreservations")]
-        public async Task<IActionResult> PutUserNewReservations([FromBody] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userCombinedRequestReservationDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userCombinedRequestReservationDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.UpdateUserReservationsAsync(userCombinedRequestReservationDto.Email, userCombinedRequestReservationDto.UserReservationDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Add new loans to the given user
-        /// </summary>
-        /// <param name="userCombinedRequestLoanDto">The dto list from which the loans will be created</param>
-        /// <returns>The result of the requested action (true for success)</returns>
-        [HttpPut("setnewloans")]
-        public async Task<IActionResult> PutUserNewLoans([FromBody] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userCombinedRequestLoanDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userCombinedRequestLoanDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.UpdateUserLoansAsync(userCombinedRequestLoanDto.Email, userCombinedRequestLoanDto.UserLoanDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Give the specified user new permission
-        /// </summary>
-        /// <param name="userModifyPrivilegeDto">The dto from which the information will be updated from</param>
-        /// <returns>The result of the requested action (true for success)</returns>
-        [HttpPut("setnewpermission")]
-        public async Task<IActionResult> PutUserNewPermission([FromBody] UserModifyPrivilegeDTO userModifyPrivilegeDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userModifyPrivilegeDto.UserEmail) && await _userService.GetUserIsExistsAsync(userModifyPrivilegeDto.RequesterEmail);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userModifyPrivilegeDto.RequesterEmail);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.UpdateUserPrivilegeAsync(userModifyPrivilegeDto);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Deletes a user from the database
-        /// </summary>
-        /// <param name="userEmailDto">The email of the user to delete</param>
-        /// <returns>The result of the requested action (true for success)</returns>
-        [HttpDelete("deleteuser")]
-        public async Task<IActionResult> DeleteUser([FromBody] UserEmailDto userEmailDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userEmailDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userEmailDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.RemoveUserAsync(userEmailDto.Email);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Delete the users given reservation information
-        /// </summary>
-        /// <param name="userCombinedRequestReservationDto">The dto from which the reservations will be removed by</param>
-        /// <returns>The result of the requested action (true for success)</returns>
-        [HttpDelete("deletereservations")]
-        public async Task<IActionResult> DeleteUserReservations([FromBody] UserCombinedRequestReservationDTO userCombinedRequestReservationDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userCombinedRequestReservationDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userCombinedRequestReservationDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.RemoveUserReservationAsync(userCombinedRequestReservationDto.Email, userCombinedRequestReservationDto.UserReservationDto);
-            return Ok(result);
-        }
-        
-        /// <summary>
-        /// Delete the users given loan information
-        /// </summary>
-        /// <param name="userCombinedRequestLoanDto">The dto from which the loans will be removed by</param>
-        /// <returns>The result of the requested action (true for success)</returns>
-        [HttpDelete("deleteloans")]
-        public async Task<IActionResult> DeleteUserLoans([FromBody] UserCombinedRequestLoanDTO userCombinedRequestLoanDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            
-            var isExists = await _userService.GetUserIsExistsAsync(userCombinedRequestLoanDto.Email);
-            if (!isExists)
-                return BadRequest("Nem létezik ilyen felhasználó!");
-            
-            var isAuthenticated = await _userService.GetUserAuthenticatedAsync(userCombinedRequestLoanDto.Email);
-            if (!isAuthenticated)
-                return BadRequest("Nem vagy bejelentkezve!");
-
-            var result = await _userService.RemoveUserLoansAsync(userCombinedRequestLoanDto.Email, userCombinedRequestLoanDto.UserLoanDto);
-            return Ok(result);
+            try
+            {
+                var result = await _userService.CreateDefaultAdmin();
+                return Ok(new ApiResponse<DefaultAdminDto> { Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<DefaultAdminDto> { Error = ex.Message });
+            }
         }
     }
 }

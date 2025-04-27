@@ -2,6 +2,7 @@ using BiblioBackend.DataContext.Dtos.Book.Modify;
 using BiblioBackend.DataContext.Dtos.Book.Post;
 using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BiblioBackend.Controllers
@@ -11,11 +12,19 @@ namespace BiblioBackend.Controllers
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
+        private readonly IUserService _userService;
 
-        public BookController(IBookService bookService)
+        public BookController(IBookService bookService, IUserService userService)
         {
             _bookService = bookService;
+            _userService = userService;
         }
+
+        // ---
+        private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
+        private ObjectResult NoPermission => Unauthorized("Nincs jogosultsÃ¡god ehhez!");
+        private ObjectResult MissingBook => NotFound("A kÃ©rt kÃ¶nyv nem lÃ©tezik!");
+        // ---
 
         [HttpGet]
         public async Task<IActionResult> GetAllBooks()
@@ -28,91 +37,101 @@ namespace BiblioBackend.Controllers
         public async Task<IActionResult> GetBookById(int id)
         {
             var book = await _bookService.GetBookByIdAsync(id);
-            if (book == null) return NotFound();
+            if (book == null) return MissingBook;
             return Ok(book);
         }
 
-        [HttpGet("search/title={title}")]
-        public async Task<IActionResult> SearchBooksByName(string title)
-        {
-            var filtered = await _bookService.SearchBooksByNameAsync(title);
-            if (filtered.Count == 0)
-            {
-                return NotFound("A megadott címmel nem létezik könyv!");
-            }
-            return Ok(filtered);
-        }
-
-        [HttpGet("search/author={author}")]
-        public async Task<IActionResult> SearchBooksByAuthor(string author)
-        {
-            var filtered = await _bookService.SearchBooksByAuthorAsync(author);
-            if (filtered.Count == 0)
-            {
-                return NotFound("A megadott szertõvel nem létezik könyv!");
-            }
-            return Ok(filtered);
-        }
-
-        [HttpGet("search/category={category}")]
-        public async Task<IActionResult> SearchBooksByCategory(string category)
-        {
-            var filtered = await _bookService.SearchBooksByCategoryAsync(category);
-            if (filtered.Count == 0)
-            {
-                return NotFound("A megadott kategóriával nem létezik könyv!");
-            }
-            return Ok(filtered);
-        }
-
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateBook([FromBody] BookPostDTO book)
+        public async Task<IActionResult> CreateBook([FromBody] BookPostDTO bookDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookDto.RequesterEmail);
+            if (!isAuthenticated)
+                return NotLoggedIn;
 
-            var createdBook = await _bookService.CreateBookAsync(book);
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
+                return NoPermission;
+
+            var createdBook = await _bookService.CreateBookAsync(bookDto);
             return Ok();
         }
 
+        [Authorize]
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDTO book)
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDTO bookDto)
         {
-            var updatedBook = await _bookService.UpdateBookAsync(id, book);
-            if (updatedBook == null) return NotFound();
-            return Ok();
+            var updatedBook = await _bookService.UpdateBookAsync(id, bookDto);
+            if (updatedBook == null) return MissingBook;
+            return Ok(updatedBook);
         }
 
+        [Authorize]
         [HttpPatch("availability")]
         public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailabilityPatchDTO dto)
         {
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, dto.Email);
+            if (!isAuthenticated)
+                return NotLoggedIn;
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, dto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
+                return NoPermission;
+
             var book = await _bookService.UpdateAvailabilityAsync(dto);
+            if (book == null) return MissingBook;
 
-            if (book == null)
-            {
-                return NotFound("A megadott könyv nem létezik!");
-            }
-
-            return Ok();
+            return Ok(book);
         }
 
+        [Authorize]
         [HttpPatch("quality")]
         public async Task<IActionResult> UpdateQuality([FromBody] BookQualityPatchDTO dto)
         {
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, dto.Email);
+            if (!isAuthenticated)
+                return NotLoggedIn;
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, dto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
+                return NoPermission;
+
             var book = await _bookService.UpdateQualityAsync(dto);
+            if (book == null) return MissingBook;
 
-            if (book == null)
-            {
-                return NotFound("A megadott könyv nem létezik!");
-            }
-
-            return Ok();
+            return Ok(book);
         }
 
+        [HttpGet("search/title")]
+        public async Task<IActionResult> SearchBooksByName(string title)
+        {
+            var filtered = await _bookService.SearchBooksByNameAsync(title);
+            if (filtered.Count == 0) return MissingBook;
+            return Ok(filtered);
+        }
+
+        [HttpGet("search/author")]
+        public async Task<IActionResult> SearchBooksByAuthor(string author)
+        {
+            var filtered = await _bookService.SearchBooksByAuthorAsync(author);
+            if (filtered.Count == 0) return MissingBook;
+            return Ok(filtered);
+        }
+
+        [HttpGet("search/category")]
+        public async Task<IActionResult> SearchBooksByCategory(string category)
+        {
+            var filtered = await _bookService.SearchBooksByCategoryAsync(category);
+            if (filtered.Count == 0) return MissingBook;
+            return Ok(filtered);
+        }
+
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             var result = await _bookService.DeleteBookAsync(id);
-            if (!result) return NotFound();
+            if (!result) return MissingBook;
             return NoContent();
         }
     }
