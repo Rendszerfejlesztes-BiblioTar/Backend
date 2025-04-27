@@ -31,4 +31,8 @@
       <ProjectReference Include="BiblioBackend.Services\BiblioBackend.Services.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="BiblioBackend.DataContext\Dtos\Book\" />
+    </ItemGroup>
+
 </Project>

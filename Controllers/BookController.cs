@@ -1,8 +1,9 @@
+using BiblioBackend.DataContext.Dtos.Book.Modify;
+using BiblioBackend.DataContext.Dtos.Book.Post;
 using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 
-// BookController.cs
 namespace BiblioBackend.Controllers
 {
     [ApiController]
@@ -14,13 +15,6 @@ namespace BiblioBackend.Controllers
         public BookController(IBookService bookService)
         {
             _bookService = bookService;
-        }
-
-        [HttpGet("test")]
-        public async Task<IActionResult> GetTest()
-        {
-            var test = await _bookService.GetTest();
-            return Ok(test);
         }
 
         [HttpGet]
@@ -38,59 +32,7 @@ namespace BiblioBackend.Controllers
             return Ok(book);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateBook([FromBody] Book book)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var createdBook = await _bookService.CreateBookAsync(book);
-            return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
-        {
-            if (id != book.Id) return BadRequest("Az ID nem egyezik a kéréssel.");
-            var updatedBook = await _bookService.UpdateBookAsync(book);
-            if (updatedBook == null) return NotFound();
-            return Ok(updatedBook);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBook(int id)
-        {
-            var result = await _bookService.DeleteBookAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
-        }
-
-        [HttpPut("availability/{id}")]
-        public async Task<IActionResult> UpdateAvailability(int id, bool isAvailable)
-        {
-            var book = await _bookService.UpdateAvailabilityAsync(id, isAvailable);
-
-            if (book == null)
-            {
-                return NotFound("A megadott könyv nem létezik!");
-            }
-
-            return Ok(book);
-        }
-
-        [HttpPut("quality/{id}")]
-        public async Task<IActionResult> UpdateQuality(int id, BookQuality bookQuality)
-        {
-            var book = await _bookService.UpdateQualityAsync(id, bookQuality);
-
-            if (book == null)
-            {
-                return NotFound("A megadott könyv nem létezik!");
-            }
-
-            return Ok(book);
-        }
-
-        [HttpGet("search/title")]
+        [HttpGet("search/title={title}")]
         public async Task<IActionResult> SearchBooksByName(string title)
         {
             var filtered = await _bookService.SearchBooksByNameAsync(title);
@@ -101,7 +43,7 @@ namespace BiblioBackend.Controllers
             return Ok(filtered);
         }
 
-        [HttpGet("search/author")]
+        [HttpGet("search/author={author}")]
         public async Task<IActionResult> SearchBooksByAuthor(string author)
         {
             var filtered = await _bookService.SearchBooksByAuthorAsync(author);
@@ -112,7 +54,7 @@ namespace BiblioBackend.Controllers
             return Ok(filtered);
         }
 
-        [HttpGet("search/category")]
+        [HttpGet("search/category={category}")]
         public async Task<IActionResult> SearchBooksByCategory(string category)
         {
             var filtered = await _bookService.SearchBooksByCategoryAsync(category);
@@ -121,6 +63,57 @@ namespace BiblioBackend.Controllers
                 return NotFound("A megadott kategóriával nem létezik könyv!");
             }
             return Ok(filtered);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateBook([FromBody] BookPostDTO book)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var createdBook = await _bookService.CreateBookAsync(book);
+            return Ok();
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDTO book)
+        {
+            var updatedBook = await _bookService.UpdateBookAsync(id, book);
+            if (updatedBook == null) return NotFound();
+            return Ok();
+        }
+
+        [HttpPatch("availability")]
+        public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailabilityPatchDTO dto)
+        {
+            var book = await _bookService.UpdateAvailabilityAsync(dto);
+
+            if (book == null)
+            {
+                return NotFound("A megadott könyv nem létezik!");
+            }
+
+            return Ok();
+        }
+
+        [HttpPatch("quality")]
+        public async Task<IActionResult> UpdateQuality([FromBody] BookQualityPatchDTO dto)
+        {
+            var book = await _bookService.UpdateQualityAsync(dto);
+
+            if (book == null)
+            {
+                return NotFound("A megadott könyv nem létezik!");
+            }
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            var result = await _bookService.DeleteBookAsync(id);
+            if (!result) return NotFound();
+            return NoContent();
         }
     }
 }

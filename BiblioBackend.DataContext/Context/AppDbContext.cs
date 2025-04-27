@@ -21,7 +21,7 @@ public class AppDbContext : DbContext
     {
         string connectionString;
     
-        connectionString = "Server=localhost;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
+        connectionString = "Server=localhost\\SQLEXPRESS;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
 
         optionsBuilder.UseSqlServer(connectionString);
     }
