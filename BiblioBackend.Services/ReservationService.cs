@@ -52,8 +52,19 @@ namespace BiblioBackend.BiblioBackend.Services
             return new ReservationDetailDto
             {
                 Id = reservation.Id,
-                Book = reservation.Book,
-                // When user dtos are implemented, this will need to be updated
+                Book = new BookGetDTO
+                {
+                    Id = reservation.Book.Id,
+                    Title = reservation.Book.Title,
+                    AuthorId = reservation.Book.Id,
+                    AuthorName = reservation.Book.Author != null ? reservation.Book.Author.Name : null,
+                    CategoryId = reservation.Book.Id,
+                    CategoryName = reservation.Book.Category != null ? reservation.Book.Category.Name : null,
+                    Description = reservation.Book.Description,
+                    IsAvailable = reservation.Book.IsAvailable,
+                    NumberInLibrary = reservation.Book.NumberInLibrary,
+                    BookQuality = reservation.Book.BookQuality
+                },
                 User = new UserDto
                 {
                     Email = reservation.User.Email,

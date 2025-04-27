@@ -1,15 +1,15 @@
-using BiblioBackend.DataContext.Dtos;
+using BiblioBackend.DataContext.Dtos.Book.Modify;
+using BiblioBackend.DataContext.Dtos.Book.Post;
 using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-// BookController.cs
 namespace BiblioBackend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BookController : ControllerBase //TODO: Fix return types, to only return simple types
+    public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
         private readonly IUserService _userService;
@@ -19,19 +19,13 @@ namespace BiblioBackend.Controllers
             _bookService = bookService;
             _userService = userService;
         }
-        
+
         // ---
-        
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
-        private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehez!");
+        private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehhez!");
         private ObjectResult MissingBook => NotFound("A kért könyv nem létezik!");
-        
         // ---
 
-        /// <summary>
-        /// Get all books in the database
-        /// </summary>
-        /// <returns>Every known book</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllBooks()
         {
@@ -39,191 +33,106 @@ namespace BiblioBackend.Controllers
             return Ok(books);
         }
 
-        /// <summary>
-        /// Get a specific book
-        /// </summary>
-        /// <param name="id">The id of the book</param>
-        /// <returns>The requested book</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBookById(int id)
         {
             var book = await _bookService.GetBookByIdAsync(id);
-            if (book == null) return NotFound();
+            if (book == null) return MissingBook;
             return Ok(book);
         }
 
-        /// <summary>
-        /// Create a new book
-        /// </summary>
-        /// <param name="bookValuesDto">The book to create from dto</param>
-        /// <returns>The book that was created</returns>
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateBook([FromBody] BookValuesDto bookValuesDto)
+        public async Task<IActionResult> CreateBook([FromBody] BookPostDTO bookDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookValuesDto.RequesterEmail);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookDto.RequesterEmail);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookValuesDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
-            //TODO: maybe dont return the whole book????
-            var createdBook = await _bookService.CreateBookAsync(new Book
-            {
-                Title = bookValuesDto.Title,
-                AuthorId = bookValuesDto.AuthorId,
-                CategoryId = bookValuesDto.CategoryId,
-                Description = bookValuesDto.Description,
-                IsAvailable = bookValuesDto.IsAvailable,
-                NumberInLibrary = bookValuesDto.NumberInLibrary,
-                BookQuality = bookValuesDto.BookQuality
-            });
+
+            var createdBook = await _bookService.CreateBookAsync(bookDto);
             return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
         }
 
-        /// <summary>
-        /// Update a books value
-        /// </summary>
-        /// <param name="bookSimpleDto">The dto to update from</param>
-        /// <returns>The updated book</returns>
         [Authorize]
-        [HttpPut]
-        public async Task<IActionResult> UpdateBook([FromBody] BookSimpleDto bookSimpleDto)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDTO bookDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookSimpleDto.Email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
-
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookSimpleDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
-                return NoPermission;
-            
-            var updatedBook = await _bookService.UpdateBookAsync(new Book
-            {
-                Id = bookSimpleDto.Id
-            });
-            
-            if (updatedBook == null)
-                return MissingBook;
-            
+            var updatedBook = await _bookService.UpdateBookAsync(id, bookDto);
+            if (updatedBook == null) return MissingBook;
             return Ok(updatedBook);
         }
 
-        /// <summary>
-        /// Delete a book from the database
-        /// </summary>
-        /// <param name="bookSimpleDto">The dto to delete from</param>
-        /// <returns>True if deleted</returns>
         [Authorize]
-        [HttpDelete]
-        public async Task<IActionResult> DeleteBook([FromBody] BookSimpleDto bookSimpleDto)
+        [HttpPatch("availability")]
+        public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailabilityPatchDTO dto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookSimpleDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, dto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookSimpleDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, dto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var result = await _bookService.DeleteBookAsync(bookSimpleDto.Id);
-            if (!result) 
-                return MissingBook;
-            return Ok(result);
-        }
 
-        /// <summary>
-        /// Set if the book is available for renting
-        /// </summary>
-        /// <param name="bookAvailablilityDto">The dto from to update the availablity of the book</param>
-        /// <returns>The updated book</returns>
-        [Authorize]
-        [HttpPut("availability")]
-        public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailablilityDto bookAvailablilityDto)
-        {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookAvailablilityDto.Email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
-
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookAvailablilityDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
-                return NoPermission;
-            
-            var book = await _bookService.UpdateAvailabilityAsync(bookAvailablilityDto.Id, bookAvailablilityDto.Available);
-
-            if (book == null)
-                return MissingBook;
+            var book = await _bookService.UpdateAvailabilityAsync(dto);
+            if (book == null) return MissingBook;
 
             return Ok(book);
         }
 
-        /// <summary>
-        /// Change the quality of a given book
-        /// </summary>
-        /// <param name="bookQualityDto">The dto from which we update our data</param>
-        /// <returns>The updated book</returns>
         [Authorize]
-        [HttpPut("quality")]
-        public async Task<IActionResult> UpdateQuality([FromBody] BookQualityDto bookQualityDto)
+        [HttpPatch("quality")]
+        public async Task<IActionResult> UpdateQuality([FromBody] BookQualityPatchDTO dto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookQualityDto.Email);
+            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, dto.Email);
             if (!isAuthenticated)
                 return NotLoggedIn;
 
-            var hasPermssion = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookQualityDto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (hasPermssion)
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, dto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission)
                 return NoPermission;
-            
-            var book = await _bookService.UpdateQualityAsync(bookQualityDto.Id, bookQualityDto.Quality);
 
-            if (book == null)
-                return MissingBook;
+            var book = await _bookService.UpdateQualityAsync(dto);
+            if (book == null) return MissingBook;
 
             return Ok(book);
         }
 
-        /// <summary>
-        /// Search the book by the given title
-        /// </summary>
-        /// <param name="title">The title to search</param>
-        /// <returns>A list of results</returns>
         [HttpGet("search/title")]
         public async Task<IActionResult> SearchBooksByName(string title)
         {
             var filtered = await _bookService.SearchBooksByNameAsync(title);
-            if (filtered.Count == 0)
-                return MissingBook;
+            if (filtered.Count == 0) return MissingBook;
             return Ok(filtered);
         }
 
-        /// <summary>
-        /// Search a book by its author
-        /// </summary>
-        /// <param name="author">The author to search</param>
-        /// <returns>The list of results</returns>
         [HttpGet("search/author")]
         public async Task<IActionResult> SearchBooksByAuthor(string author)
         {
             var filtered = await _bookService.SearchBooksByAuthorAsync(author);
-            if (filtered.Count == 0)
-                return MissingBook;
+            if (filtered.Count == 0) return MissingBook;
             return Ok(filtered);
         }
 
-        /// <summary>
-        /// Search a book by its category
-        /// </summary>
-        /// <param name="category">The category to search</param>
-        /// <returns>The list of results</returns>
         [HttpGet("search/category")]
         public async Task<IActionResult> SearchBooksByCategory(string category)
         {
             var filtered = await _bookService.SearchBooksByCategoryAsync(category);
-            if (filtered.Count == 0)
-                return MissingBook;
+            if (filtered.Count == 0) return MissingBook;
             return Ok(filtered);
+        }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            var result = await _bookService.DeleteBookAsync(id);
+            if (!result) return MissingBook;
+            return NoContent();
         }
     }
 }
