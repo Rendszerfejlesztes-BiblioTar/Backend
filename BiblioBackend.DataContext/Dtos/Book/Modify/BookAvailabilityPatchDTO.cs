@@ -10,5 +10,6 @@ namespace BiblioBackend.DataContext.Dtos.Book.Modify
     {
         public int Id { get; set; }
         public bool IsAvailable { get; set; }
+        public string Email { get; set; }
     }
 }

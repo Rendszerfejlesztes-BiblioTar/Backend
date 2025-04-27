@@ -20,8 +20,9 @@ public class AppDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString;
-    
+
         connectionString = "Server=localhost\\SQLEXPRESS;Database=Biblio;Trusted_Connection=True;TrustServerCertificate=True;";
+        //connectionString = "Server=(local);Database=BiblioTar;Trusted_Connection=True;TrustServerCertificate=True;";
 
         optionsBuilder.UseSqlServer(connectionString);
     }

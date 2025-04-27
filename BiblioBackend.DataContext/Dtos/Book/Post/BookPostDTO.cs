@@ -16,5 +16,7 @@ namespace BiblioBackend.DataContext.Dtos.Book.Post
         public bool IsAvailable { get; set; }
         public string? NumberInLibrary { get; set; }
         public BookQuality BookQuality { get; set; }
+
+        public string RequesterEmail { get; set; }
     }
 }

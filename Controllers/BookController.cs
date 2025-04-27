@@ -54,7 +54,7 @@ namespace BiblioBackend.Controllers
                 return NoPermission;
 
             var createdBook = await _bookService.CreateBookAsync(bookDto);
-            return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
+            return Ok();
         }
 
         [Authorize]
