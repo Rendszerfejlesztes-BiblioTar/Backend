@@ -10,7 +10,6 @@ namespace BiblioBackend.DataContext.Dtos.Loan
     public class LoanPostDTO
 
     {
-        public string UserEmail { get; set; }
         public int BookId { get; set; }
         public DateTime StartTime { get; set; }
     }
