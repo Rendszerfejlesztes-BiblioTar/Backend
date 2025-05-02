@@ -13,6 +13,5 @@
         public string? NumberInLibrary { get; set; }
         public int BookQuality { get; set; }
 
-        public string RequesterEmail { get; set; }
     }
 }

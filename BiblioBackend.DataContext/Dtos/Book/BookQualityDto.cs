@@ -6,5 +6,4 @@ public class BookQualityDto
 {
     public int Id { get; set; }
     public BookQuality Quality { get; set; }
-    public string Email { get; set; }
 }

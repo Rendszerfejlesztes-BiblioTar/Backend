@@ -4,6 +4,7 @@ using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BiblioBackend.Controllers
 {
@@ -20,11 +21,9 @@ namespace BiblioBackend.Controllers
             _userService = userService;
         }
 
-        // ---
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehhez!");
         private ObjectResult MissingBook => NotFound("A kért könyv nem létezik!");
-        // ---
 
         [HttpGet]
         public async Task<IActionResult> GetAllBooks()
@@ -45,23 +44,27 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBook([FromBody] BookPostDTO bookDto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, bookDto.RequesterEmail);
-            if (!isAuthenticated)
-                return NotLoggedIn;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, bookDto.RequesterEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission)
-                return NoPermission;
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission) return NoPermission;
 
-            var createdBook = await _bookService.CreateBookAsync(bookDto);
-            return Ok();
+            var createdBook = await _bookService.CreateBookAsync(bookDto, email); // Pass email for auditing
+            return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
         }
 
         [Authorize]
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDTO bookDto)
         {
-            var updatedBook = await _bookService.UpdateBookAsync(id, bookDto);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission) return NoPermission;
+
+            var updatedBook = await _bookService.UpdateBookAsync(id, bookDto, email); // Pass email for auditing
             if (updatedBook == null) return MissingBook;
             return Ok(updatedBook);
         }
@@ -70,17 +73,14 @@ namespace BiblioBackend.Controllers
         [HttpPatch("availability")]
         public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailabilityPatchDTO dto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, dto.Email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, dto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission)
-                return NoPermission;
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission) return NoPermission;
 
-            var book = await _bookService.UpdateAvailabilityAsync(dto);
+            var book = await _bookService.UpdateAvailabilityAsync(dto, email); // Pass email for auditing
             if (book == null) return MissingBook;
-
             return Ok(book);
         }
 
@@ -88,17 +88,14 @@ namespace BiblioBackend.Controllers
         [HttpPatch("quality")]
         public async Task<IActionResult> UpdateQuality([FromBody] BookQualityPatchDTO dto)
         {
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, dto.Email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, dto.Email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission)
-                return NoPermission;
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission) return NoPermission;
 
-            var book = await _bookService.UpdateQualityAsync(dto);
+            var book = await _bookService.UpdateQualityAsync(dto, email); // Pass email for auditing
             if (book == null) return MissingBook;
-
             return Ok(book);
         }
 
@@ -130,7 +127,13 @@ namespace BiblioBackend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var result = await _bookService.DeleteBookAsync(id);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+
+            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            if (!hasPermission) return NoPermission;
+
+            var result = await _bookService.DeleteBookAsync(id, email); // Pass email for auditing
             if (!result) return MissingBook;
             return NoContent();
         }

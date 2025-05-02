@@ -4,6 +4,7 @@ using BiblioBackend.DataContext.Dtos;
 using Microsoft.EntityFrameworkCore;
 using BiblioBackend.DataContext.Dtos.Book.Modify;
 using BiblioBackend.DataContext.Dtos.Book.Post;
+using Microsoft.Extensions.Logging;
 
 namespace BiblioBackend.Services
 {
@@ -14,24 +15,27 @@ namespace BiblioBackend.Services
         Task<List<BookGetDTO>> SearchBooksByNameAsync(string title);
         Task<List<BookGetDTO>> SearchBooksByCategoryAsync(string category);
         Task<List<BookGetDTO>> SearchBooksByAuthorAsync(string author);
-        Task<BookPostDTO> CreateBookAsync(BookPostDTO book);
-        Task<BookGetDTO?> UpdateBookAsync(int id, BookPatchDTO book);
-        Task<BookGetDTO?> UpdateAvailabilityAsync(BookAvailabilityPatchDTO dto);
-        Task<BookGetDTO?> UpdateQualityAsync(BookQualityPatchDTO dto);
-        Task<bool> DeleteBookAsync(int id);
+        Task<BookGetDTO> CreateBookAsync(BookPostDTO book, string requesterEmail);
+        Task<BookGetDTO?> UpdateBookAsync(int id, BookPatchDTO book, string requesterEmail);
+        Task<BookGetDTO?> UpdateAvailabilityAsync(BookAvailabilityPatchDTO dto, string requesterEmail);
+        Task<BookGetDTO?> UpdateQualityAsync(BookQualityPatchDTO dto, string requesterEmail);
+        Task<bool> DeleteBookAsync(int id, string requesterEmail);
     }
 
     public class BookService : IBookService
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<BookService> _logger;
 
-        public BookService(AppDbContext context)
+        public BookService(AppDbContext context, ILogger<BookService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<List<BookGetDTO>> GetAllBooksAsync()
         {
+            _logger.LogInformation("Retrieving all books");
             return await _context.Books
                 .Select(b => new BookGetDTO
                 {
@@ -51,6 +55,7 @@ namespace BiblioBackend.Services
 
         public async Task<BookGetDTO?> GetBookByIdAsync(int id)
         {
+            _logger.LogInformation("Retrieving book with ID {Id}", id);
             var book = await _context.Books
                 .Include(b => b.Author)
                 .Include(b => b.Category)
@@ -74,7 +79,8 @@ namespace BiblioBackend.Services
 
         public async Task<List<BookGetDTO>> SearchBooksByNameAsync(string title)
         {
-            var books = await _context.Books
+            _logger.LogInformation("Searching books by title: {Title}", title);
+            return await _context.Books
                 .Include(b => b.Author)
                 .Include(b => b.Category)
                 .Where(b => b.Title.Contains(title))
@@ -92,14 +98,12 @@ namespace BiblioBackend.Services
                     BookQuality = b.BookQuality
                 })
                 .ToListAsync();
-
-
-            return books;
         }
 
         public async Task<List<BookGetDTO>> SearchBooksByCategoryAsync(string category)
         {
-            var books = await _context.Books
+            _logger.LogInformation("Searching books by category: {Category}", category);
+            return await _context.Books
                 .Include(b => b.Author)
                 .Include(b => b.Category)
                 .Where(b => b.Category.Name.Contains(category))
@@ -117,13 +121,12 @@ namespace BiblioBackend.Services
                     BookQuality = b.BookQuality
                 })
                 .ToListAsync();
-
-            return books;
         }
 
         public async Task<List<BookGetDTO>> SearchBooksByAuthorAsync(string author)
         {
-            var books = await _context.Books
+            _logger.LogInformation("Searching books by author: {Author}", author);
+            return await _context.Books
                 .Include(b => b.Author)
                 .Include(b => b.Category)
                 .Where(b => b.Author.Name.Contains(author))
@@ -141,13 +144,13 @@ namespace BiblioBackend.Services
                     BookQuality = b.BookQuality
                 })
                 .ToListAsync();
-
-            return books;
         }
 
-        public async Task<BookPostDTO> CreateBookAsync(BookPostDTO book)
+        public async Task<BookGetDTO> CreateBookAsync(BookPostDTO book, string requesterEmail)
         {
-            _context.Books.Add(new Book {
+            _logger.LogInformation("Creating book by {Email}", requesterEmail);
+            var newBook = new Book
+            {
                 Title = book.Title,
                 AuthorId = book.AuthorId,
                 CategoryId = book.CategoryId,
@@ -155,21 +158,54 @@ namespace BiblioBackend.Services
                 IsAvailable = book.IsAvailable,
                 NumberInLibrary = book.NumberInLibrary,
                 BookQuality = book.BookQuality
-            });
+            };
+
+            _context.Books.Add(newBook);
             await _context.SaveChangesAsync();
-            return book;
+
+            _logger.LogInformation("Book {Title} created by {Email}", book.Title, requesterEmail);
+
+            return new BookGetDTO
+            {
+                Id = newBook.Id,
+                Title = newBook.Title,
+                AuthorId = newBook.AuthorId,
+                AuthorName = newBook.Author != null ? newBook.Author.Name : null,
+                CategoryId = newBook.CategoryId,
+                CategoryName = newBook.Category != null ? newBook.Category.Name : null,
+                Description = newBook.Description,
+                IsAvailable = newBook.IsAvailable,
+                NumberInLibrary = newBook.NumberInLibrary,
+                BookQuality = newBook.BookQuality
+            };
         }
 
-        public async Task<BookGetDTO?> UpdateBookAsync(int id, BookPatchDTO book)
+        public async Task<BookGetDTO?> UpdateBookAsync(int id, BookPatchDTO book, string requesterEmail)
         {
-            var existingBook = await _context.Books.FindAsync(id);
-            if (existingBook == null) return null;
+            _logger.LogInformation("Updating book {Id} by {Email}", id, requesterEmail);
+            var existingBook = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Category)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
-            existingBook.Title = book.Title;
-            existingBook.Description = book.Description;
-            existingBook.NumberInLibrary = book.NumberInLibrary;
+            if (existingBook == null)
+            {
+                _logger.LogWarning("Book {Id} not found", id);
+                return null;
+            }
+
+            existingBook.Title = book.Title ?? existingBook.Title;
+            existingBook.AuthorId = book.AuthorId ?? existingBook.AuthorId;
+            existingBook.CategoryId = book.CategoryId ?? existingBook.CategoryId;
+            existingBook.Description = book.Description ?? existingBook.Description;
+            existingBook.IsAvailable = book.IsAvailable ?? existingBook.IsAvailable;
+            existingBook.NumberInLibrary = book.NumberInLibrary ?? existingBook.NumberInLibrary;
+            existingBook.BookQuality = book.BookQuality != null ? (BookQuality)book.BookQuality : existingBook.BookQuality;
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Book {Id} updated by {Email}", id, requesterEmail);
+
             return new BookGetDTO
             {
                 Id = existingBook.Id,
@@ -182,16 +218,28 @@ namespace BiblioBackend.Services
                 IsAvailable = existingBook.IsAvailable,
                 NumberInLibrary = existingBook.NumberInLibrary,
                 BookQuality = existingBook.BookQuality
-            }; ;
+            };
         }
 
-        public async Task<BookGetDTO?> UpdateAvailabilityAsync(BookAvailabilityPatchDTO dto)
+        public async Task<BookGetDTO?> UpdateAvailabilityAsync(BookAvailabilityPatchDTO dto, string requesterEmail)
         {
-            var bookToUpdate = await _context.Books.FindAsync(dto.Id);
-            if (bookToUpdate == null) return null;
+            _logger.LogInformation("Updating availability for book {Id} by {Email}", dto.Id, requesterEmail);
+            var bookToUpdate = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Category)
+                .FirstOrDefaultAsync(b => b.Id == dto.Id);
+
+            if (bookToUpdate == null)
+            {
+                _logger.LogWarning("Book {Id} not found", dto.Id);
+                return null;
+            }
 
             bookToUpdate.IsAvailable = dto.IsAvailable;
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Availability updated for book {Id} by {Email}", dto.Id, requesterEmail);
+
             return new BookGetDTO
             {
                 Id = bookToUpdate.Id,
@@ -207,13 +255,25 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<BookGetDTO?> UpdateQualityAsync(BookQualityPatchDTO dto)
+        public async Task<BookGetDTO?> UpdateQualityAsync(BookQualityPatchDTO dto, string requesterEmail)
         {
-            var bookToUpdate = await _context.Books.FindAsync(dto.Id);
-            if (bookToUpdate == null) return null;
+            _logger.LogInformation("Updating quality for book {Id} by {Email}", dto.Id, requesterEmail);
+            var bookToUpdate = await _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Category)
+                .FirstOrDefaultAsync(b => b.Id == dto.Id);
+
+            if (bookToUpdate == null)
+            {
+                _logger.LogWarning("Book {Id} not found", dto.Id);
+                return null;
+            }
 
             bookToUpdate.BookQuality = dto.BookQuality;
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Quality updated for book {Id} by {Email}", dto.Id, requesterEmail);
+
             return new BookGetDTO
             {
                 Id = bookToUpdate.Id,
@@ -229,13 +289,20 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<bool> DeleteBookAsync(int id)
+        public async Task<bool> DeleteBookAsync(int id, string requesterEmail)
         {
+            _logger.LogInformation("Deleting book {Id} by {Email}", id, requesterEmail);
             var book = await _context.Books.FindAsync(id);
-            if (book == null) return false;
+            if (book == null)
+            {
+                _logger.LogWarning("Book {Id} not found", id);
+                return false;
+            }
 
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Book {Id} deleted by {Email}", id, requesterEmail);
             return true;
         }
     }
