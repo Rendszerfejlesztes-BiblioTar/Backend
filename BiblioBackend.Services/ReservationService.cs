@@ -10,11 +10,11 @@ namespace BiblioBackend.Services
 {
     public interface IReservationService
     {
-        Task<List<ReservationGetDTO>> GetAllReservationsAsync();
-        Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email);
+        Task<List<ReservationGetDto>> GetAllReservationsAsync();
+        Task<List<ReservationGetDto>> GetUsersReservationsAsync(string email);
         Task<ReservationDetailDto?> GetAllInfoForReservationAsync(int id);
-        Task<ReservationGetDTO> CreateReservationAsync(ReservationPostDTO reservation, string userEmail);
-        Task<ReservationGetDTO> UpdateReservationAsync(int id, ReservationPatchDTO reservation, string userEmail);
+        Task<ReservationGetDto> CreateReservationAsync(ReservationPostDto reservation, string userEmail);
+        Task<ReservationGetDto> UpdateReservationAsync(int id, ReservationPatchDto reservation, string userEmail);
         Task<bool> DeleteReservationAsync(int id, string userEmail);
     }
 
@@ -31,15 +31,14 @@ namespace BiblioBackend.Services
             _userService = userService;
         }
 
-        public async Task<List<ReservationGetDTO>> GetAllReservationsAsync()
+        public async Task<List<ReservationGetDto>> GetAllReservationsAsync()
         {
             _logger.LogInformation("Retrieving all reservations");
             return await _dbContext.Reservations
-                .Select(res => new ReservationGetDTO
+                .Select(res => new ReservationGetDto
                 {
                     Id = res.Id,
                     BookId = res.BookId,
-                    UserEmail = res.UserEmail,
                     IsAccepted = res.IsAccepted,
                     ReservationDate = res.ReservationDate,
                     ExpectedStart = res.ExpectedStart,
@@ -48,16 +47,15 @@ namespace BiblioBackend.Services
                 .ToListAsync();
         }
 
-        public async Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email)
+        public async Task<List<ReservationGetDto>> GetUsersReservationsAsync(string email)
         {
             _logger.LogInformation("Retrieving reservations for user {Email}", email);
             return await _dbContext.Reservations
                 .Where(res => res.UserEmail == email)
-                .Select(res => new ReservationGetDTO
+                .Select(res => new ReservationGetDto
                 {
                     Id = res.Id,
                     BookId = res.BookId,
-                    UserEmail = res.UserEmail,
                     IsAccepted = res.IsAccepted,
                     ReservationDate = res.ReservationDate,
                     ExpectedStart = res.ExpectedStart,
@@ -83,7 +81,7 @@ namespace BiblioBackend.Services
             return new ReservationDetailDto
             {
                 Id = reservation.Id,
-                Book = new BookGetDTO
+                Book = new BookGetDto
                 {
                     Id = reservation.Book?.Id ?? 0,
                     Title = reservation.Book?.Title ?? "",
@@ -112,7 +110,7 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<ReservationGetDTO> CreateReservationAsync(ReservationPostDTO reservation, string userEmail)
+        public async Task<ReservationGetDto> CreateReservationAsync(ReservationPostDto reservation, string userEmail)
         {
             _logger.LogInformation("Creating reservation for user {Email}", userEmail);
 
@@ -139,10 +137,9 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("Reservation created for user {Email}, book {BookId}", userEmail, reservation.BookId);
 
-            return new ReservationGetDTO
+            return new ReservationGetDto
             {
                 Id = newReservation.Id,
-                UserEmail = newReservation.UserEmail,
                 BookId = newReservation.BookId,
                 IsAccepted = newReservation.IsAccepted,
                 ReservationDate = newReservation.ReservationDate,
@@ -151,7 +148,7 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<ReservationGetDTO> UpdateReservationAsync(int id, ReservationPatchDTO reservation, string userEmail)
+        public async Task<ReservationGetDto> UpdateReservationAsync(int id, ReservationPatchDto reservation, string userEmail)
         {
             _logger.LogInformation("Updating reservation {Id} by {Email}", id, userEmail);
             var reservationToUpdate = await _dbContext.Reservations.FindAsync(id);
@@ -180,10 +177,9 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("Reservation {Id} updated by {Email}", id, userEmail);
 
-            return new ReservationGetDTO
+            return new ReservationGetDto
             {
                 Id = reservationToUpdate.Id,
-                UserEmail = reservationToUpdate.UserEmail,
                 BookId = reservationToUpdate.BookId,
                 IsAccepted = reservationToUpdate.IsAccepted,
                 ReservationDate = reservationToUpdate.ReservationDate,

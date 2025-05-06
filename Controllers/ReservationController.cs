@@ -91,7 +91,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateReservationAsync([FromBody] ReservationPostDTO reservation)
+        public async Task<IActionResult> CreateReservationAsync([FromBody] ReservationPostDto reservation)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateReservationAsync(int id, [FromBody] ReservationPatchDTO reservation)
+        public async Task<IActionResult> UpdateReservationAsync(int id, [FromBody] ReservationPatchDto reservation)
         {
             try
             {

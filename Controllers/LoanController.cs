@@ -70,7 +70,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateLoan([FromBody] LoanPostDTO loanDto)
+        public async Task<IActionResult> CreateLoan([FromBody] LoanPostDto loanDto)
         {
             try
             {

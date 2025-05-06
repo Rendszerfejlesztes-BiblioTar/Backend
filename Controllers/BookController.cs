@@ -56,7 +56,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateBook([FromBody] BookPostDTO bookDto)
+        public async Task<IActionResult> CreateBook([FromBody] BookPostDto bookDto)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDTO bookDto)
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookPatchDto bookDto)
         {
             try
             {
@@ -99,7 +99,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPatch("availability")]
-        public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailabilityPatchDTO dto)
+        public async Task<IActionResult> UpdateAvailability([FromBody] BookAvailabilityPatchDto dto)
         {
             try
             {
@@ -121,7 +121,7 @@ namespace BiblioBackend.Controllers
 
         [Authorize]
         [HttpPatch("quality")]
-        public async Task<IActionResult> UpdateQuality([FromBody] BookQualityPatchDTO dto)
+        public async Task<IActionResult> UpdateQuality([FromBody] BookQualityPatchDto dto)
         {
             try
             {
