@@ -29,73 +29,108 @@ namespace BiblioBackend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllLoans()
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission) return NoPermission;
 
-            var loans = await _loanService.GetAllLoansAsync();
-            return Ok(loans);
+                var loans = await _loanService.GetAllLoansAsync();
+                return Ok(loans);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpGet("{userEmail}")]
         public async Task<IActionResult> GetLoansById(string userEmail)
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email) || email != userEmail) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email) || email != userEmail) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+                if (!hasPermission) return NoPermission;
 
-            var loans = await _loanService.GetLoansByUserIdAsync(userEmail);
-            if (loans == null) return MissingLoans;
-            return Ok(loans);
+                var loans = await _loanService.GetLoansByUserIdAsync(userEmail);
+                if (loans == null) return MissingLoans;
+                return Ok(loans);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateLoan([FromBody] LoanPostDTO loanDto)
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+                if (!hasPermission) return NoPermission;
 
-            var loan = await _loanService.CreateLoanAsync(loanDto, email); // Pass email for UserEmail
-            return CreatedAtAction(nameof(GetLoansById), new { userEmail = email }, loan);
+                var loan = await _loanService.CreateLoanAsync(loanDto, email); // Pass email for UserEmail
+                return CreatedAtAction(nameof(GetLoansById), new { userEmail = email }, loan);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoanPatchDto patchDto)
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+                if (!hasPermission) return NoPermission;
 
-            var newLoan = await _loanService.UpdateLoanAsync(id, patchDto, email); // Pass email for validation/auditing
-            if (newLoan == null) return MissingLoan;
-            return Ok(newLoan);
+                var newLoan = await _loanService.UpdateLoanAsync(id, patchDto, email); // Pass email for validation/auditing
+                if (newLoan == null) return MissingLoan;
+                return Ok(newLoan);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLoan(int id)
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
+                if (!hasPermission) return NoPermission;
 
-            var result = await _loanService.DeleteLoanAsync(id, email); // Pass email for validation/auditing
-            if (!result) return MissingLoan;
-            return Ok(result);
+                var result = await _loanService.DeleteLoanAsync(id, email); // Pass email for validation/auditing
+                if (!result) return MissingLoan;
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }
