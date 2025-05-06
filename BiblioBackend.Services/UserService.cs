@@ -27,7 +27,7 @@ namespace BiblioBackend.Services
         Task<UserLoginDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> RevokeTokenAsync(string email);
         Task<UserDto> GetUserAsync(string email);
-        Task<List<UserDto>> GetAllRegisteredUsersAsync();
+        Task<List<UserDto>> GetAllUsersAsync();
         Task<bool> UpdateUserContactAsync(UserModifyContactDto userDto);
         Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userDto);
         Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDto userDto);
@@ -267,9 +267,9 @@ namespace BiblioBackend.Services
             return user;
         }
 
-        public async Task<List<UserDto>> GetAllRegisteredUsersAsync()
+        public async Task<List<UserDto>> GetAllUsersAsync()
         {
-            var users = await _dbContext.Users.Where(u => u.Privilege == PrivilegeLevel.Registered).ToListAsync();
+            var users = await _dbContext.Users.ToListAsync();
             return users.ConvertAll(c => new UserDto()
             {
                 Email = c.Email,
