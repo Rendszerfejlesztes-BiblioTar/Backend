@@ -60,7 +60,7 @@ namespace BiblioBackend.Controllers
         public async Task<IActionResult> CreateAuthor([FromBody] AuthorModifyDto authorDto)
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != authorDto.RequesterEmail)
+            if (string.IsNullOrEmpty(email))
                 return NotLoggedIn;
 
             var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
@@ -86,7 +86,7 @@ namespace BiblioBackend.Controllers
         public async Task<IActionResult> UpdateAuthor(int id, [FromBody] AuthorModifyDto authorDto)
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != authorDto.RequesterEmail)
+            if (string.IsNullOrEmpty(email))
                 return NotLoggedIn;
 
             var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
@@ -108,14 +108,13 @@ namespace BiblioBackend.Controllers
         /// Delete the specified author
         /// </summary>
         /// <param name="id">The id of the author to delete</param>
-        /// <param name="authorPermissionRestrictedActionDto">dto containing extra information</param>
         /// <returns>True if deleted</returns>
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAuthor(int id, [FromBody] AuthorPermissionRestrictedActionDto authorPermissionRestrictedActionDto)
+        public async Task<IActionResult> DeleteAuthor(int id)
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != authorPermissionRestrictedActionDto.RequesterEmail)
+            if (string.IsNullOrEmpty(email))
                 return NotLoggedIn;
 
             var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
