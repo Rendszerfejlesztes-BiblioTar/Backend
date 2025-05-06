@@ -87,7 +87,7 @@ namespace BiblioBackend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLoan(int id)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
             var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
