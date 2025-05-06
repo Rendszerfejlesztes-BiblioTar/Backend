@@ -185,20 +185,20 @@ namespace BiblioBackend.Controllers
         }
 
         [Authorize(Policy = "UserAccess")]
-        [HttpPut("login")]
+        [HttpPut("changepassword")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
         public async Task<IActionResult> UpdateUserLogin([FromBody] UserModifyLoginDto userDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != userDto.OldEmail)
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
                 return Unauthorized(new ApiResponse<bool> { Error = "User is not authorized to update this login." });
 
             try
             {
-                var result = await _userService.UpdateUserLoginAsync(userDto);
+                var result = await _userService.UpdateUserLoginAsync(email, userDto);
                 return Ok(new ApiResponse<bool> { Data = result });
             }
             catch (KeyNotFoundException ex)

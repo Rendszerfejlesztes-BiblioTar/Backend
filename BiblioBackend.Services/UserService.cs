@@ -26,7 +26,7 @@ namespace BiblioBackend.Services
         Task<UserDto> GetUserAsync(string email);
         Task<List<UserDto>> GetAllRegisteredUsersAsync();
         Task<bool> UpdateUserContactAsync(UserModifyContactDto userDto);
-        Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userDto);
+        Task<bool> UpdateUserLoginAsync(string email, UserModifyLoginDto userDto);
         Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDto userDto);
         Task<bool> DeleteUserAsync(string email);
         Task<bool> GetUserIsExistsAsync(string email);
@@ -305,41 +305,34 @@ namespace BiblioBackend.Services
             return true;
         }
 
-        public async Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userDto)
+        public async Task<bool> UpdateUserLoginAsync(string email, UserModifyLoginDto userDto)
         {
-            if (userDto == null || string.IsNullOrEmpty(userDto.OldEmail) || string.IsNullOrEmpty(userDto.NewEmail))
+            if (userDto == null)
             {
                 _logger.LogWarning("Login update failed: Invalid input data");
-                throw new ArgumentException("Old and new email are required.");
+                throw new ArgumentException("Login update failed: Invalid input data.");
             }
 
-            _logger.LogInformation("Attempting to update login info for user: {OldEmail}", userDto.OldEmail);
+            _logger.LogInformation("Attempting to update login info for user: {email}", email);
 
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userDto.OldEmail);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                _logger.LogWarning("Login update failed: User {OldEmail} not found", userDto.OldEmail);
-                throw new KeyNotFoundException($"User with email {userDto.OldEmail} not found.");
+                _logger.LogWarning("Login update failed: User {email} not found", email);
+                throw new KeyNotFoundException($"User with email {email} not found.");
             }
 
-            if (await _dbContext.Users.AnyAsync(u => u.Email == userDto.NewEmail && u.Email != userDto.OldEmail))
-            {
-                _logger.LogWarning("Login update failed: New email {NewEmail} already in use", userDto.NewEmail);
-                throw new InvalidOperationException("New email is already in use.");
-            }
-
-            user.Email = userDto.NewEmail;
             if (!string.IsNullOrEmpty(userDto.NewPassword))
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.NewPassword);
 
             try
             {
                 await _dbContext.SaveChangesAsync();
-                _logger.LogInformation("Login info updated successfully for user: {NewEmail}", userDto.NewEmail);
+                _logger.LogInformation("Login info updated successfully for user: {email}", email);
             }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("IX_Users_Email") == true)
+            catch (DbUpdateException ex)
             {
-                _logger.LogWarning("Login update failed: New email {NewEmail} already in use (DB constraint)", userDto.NewEmail);
+                _logger.LogWarning("Login update failed: New email {email} already in use (DB constraint), " + ex.Message, email);
                 throw new InvalidOperationException("New email is already in use.");
             }
 
