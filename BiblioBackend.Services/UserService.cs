@@ -2,27 +2,24 @@ using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Dtos;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
-using System;
-using System.Threading.Tasks;
 using BiblioBackend.BiblioBackend.DataContext.Dtos.User;
 using BiblioBackend.DataContext.Dtos.User.Post;
 using BiblioBackend.DataContext.Dtos.User;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace BiblioBackend.Services
 {
     public interface IUserService
     {
         Task<UserDto> RegisterUserAsync(UserLoginValuesDto userDto);
-        Task<DefaultAdminDto> CreateDefaultAdmin();
+        Task<DefaultAdminDto?> CreateDefaultAdmin();
         Task<UserLoginDto> AuthenticateUserAsync(UserLoginValuesDto userDto);
         Task<UserLoginDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> RevokeTokenAsync(string email);
@@ -154,7 +151,7 @@ namespace BiblioBackend.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"]));
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"] ?? ""));
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("User authenticated successfully: {Email}", userDto.Email);
@@ -163,7 +160,7 @@ namespace BiblioBackend.Services
             {
                 AccessToken = token,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"] ?? "")),
                 User = new UserDto()
                 {
                     Address = user.Address,
@@ -197,7 +194,7 @@ namespace BiblioBackend.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"]));
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"] ?? ""));
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Token refreshed successfully for user: {Email}", user.Email);
@@ -206,7 +203,7 @@ namespace BiblioBackend.Services
             {
                 AccessToken = token,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"]))
+                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"] ?? ""))
             };
         }
 
@@ -484,7 +481,7 @@ namespace BiblioBackend.Services
                 throw new ArgumentException("User data is required.");
             }
 
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "");
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
@@ -498,7 +495,7 @@ namespace BiblioBackend.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"] ?? "")),
                 signingCredentials: creds);
 
             _logger.LogInformation("JWT generated successfully for user: {Email}", user.Email);
@@ -508,13 +505,11 @@ namespace BiblioBackend.Services
         private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                var refreshToken = Convert.ToBase64String(randomNumber);
-                _logger.LogInformation("Refresh token generated");
-                return refreshToken;
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            var refreshToken = Convert.ToBase64String(randomNumber);
+            _logger.LogInformation("Refresh token generated");
+            return refreshToken;
         }
     }
 }

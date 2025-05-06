@@ -106,7 +106,7 @@ namespace BiblioBackend.Services
             return await _context.Books
                 .Include(b => b.Author)
                 .Include(b => b.Category)
-                .Where(b => b.Category.Name.Contains(category))
+                .Where(b => b.Category != null && b.Category.Name != null && b.Category.Name.Contains(category))
                 .Select(b => new BookGetDTO
                 {
                     Id = b.Id,
@@ -129,7 +129,7 @@ namespace BiblioBackend.Services
             return await _context.Books
                 .Include(b => b.Author)
                 .Include(b => b.Category)
-                .Where(b => b.Author.Name.Contains(author))
+                .Where(b => b.Author != null && b.Author.Name != null && b.Author.Name.Contains(author))
                 .Select(b => new BookGetDTO
                 {
                     Id = b.Id,
@@ -170,9 +170,9 @@ namespace BiblioBackend.Services
                 Id = newBook.Id,
                 Title = newBook.Title,
                 AuthorId = newBook.AuthorId,
-                AuthorName = newBook.Author != null ? newBook.Author.Name : null,
+                AuthorName = newBook.Author?.Name,
                 CategoryId = newBook.CategoryId,
-                CategoryName = newBook.Category != null ? newBook.Category.Name : null,
+                CategoryName = newBook.Category?.Name,
                 Description = newBook.Description,
                 IsAvailable = newBook.IsAvailable,
                 NumberInLibrary = newBook.NumberInLibrary,
@@ -211,9 +211,9 @@ namespace BiblioBackend.Services
                 Id = existingBook.Id,
                 Title = existingBook.Title,
                 AuthorId = existingBook.AuthorId,
-                AuthorName = existingBook.Author != null ? existingBook.Author.Name : null,
+                AuthorName = existingBook.Author?.Name,
                 CategoryId = existingBook.CategoryId,
-                CategoryName = existingBook.Category != null ? existingBook.Category.Name : null,
+                CategoryName = existingBook.Category?.Name,
                 Description = existingBook.Description,
                 IsAvailable = existingBook.IsAvailable,
                 NumberInLibrary = existingBook.NumberInLibrary,
@@ -245,9 +245,9 @@ namespace BiblioBackend.Services
                 Id = bookToUpdate.Id,
                 Title = bookToUpdate.Title,
                 AuthorId = bookToUpdate.AuthorId,
-                AuthorName = bookToUpdate.Author != null ? bookToUpdate.Author.Name : null,
+                AuthorName = bookToUpdate.Author?.Name,
                 CategoryId = bookToUpdate.CategoryId,
-                CategoryName = bookToUpdate.Category != null ? bookToUpdate.Category.Name : null,
+                CategoryName = bookToUpdate.Category?.Name,
                 Description = bookToUpdate.Description,
                 IsAvailable = bookToUpdate.IsAvailable,
                 NumberInLibrary = bookToUpdate.NumberInLibrary,
@@ -279,9 +279,9 @@ namespace BiblioBackend.Services
                 Id = bookToUpdate.Id,
                 Title = bookToUpdate.Title,
                 AuthorId = bookToUpdate.AuthorId,
-                AuthorName = bookToUpdate.Author != null ? bookToUpdate.Author.Name : null,
+                AuthorName = bookToUpdate.Author?.Name,
                 CategoryId = bookToUpdate.CategoryId,
-                CategoryName = bookToUpdate.Category != null ? bookToUpdate.Category.Name : null,
+                CategoryName = bookToUpdate.Category?.Name,
                 Description = bookToUpdate.Description,
                 IsAvailable = bookToUpdate.IsAvailable,
                 NumberInLibrary = bookToUpdate.NumberInLibrary,

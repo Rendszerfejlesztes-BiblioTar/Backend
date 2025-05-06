@@ -93,7 +93,6 @@ namespace BiblioBackend.Controllers
             if (!hasPermission) return NoPermission;
 
             var result = await _reservationService.UpdateReservationAsync(id, reservation, email); // Pass email for validation/auditing
-            if (result == null) return MissingReservation;
             return Ok(result);
         }
 

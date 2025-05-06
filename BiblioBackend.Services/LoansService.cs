@@ -20,18 +20,21 @@ namespace BiblioBackend.Services
     {
         private readonly AppDbContext _context; 
         private readonly ILogger<LoanService> _logger;
-
-        public LoanService(AppDbContext context, ILogger<LoanService> logger)
+        private readonly IUserService _userService; // Added for permission checks
+        
+        public LoanService(AppDbContext context, ILogger<LoanService> logger, IUserService userService)
         {
             _context = context;
             _logger = logger;
+            _userService = userService;
         }
 
         public async Task<List<LoanGetDTO>> GetAllLoansAsync()
         {
             _logger.LogInformation("Retrieving all loans");
-            return await _context.Loans
-                .Select(loan => new LoanGetDTO
+            var loanList = await _context.Loans.ToListAsync();
+            
+            return loanList.ConvertAll(loan => new LoanGetDTO()
                 {
                     Id = loan.Id,
                     UserEmail = loan.UserEmail,
@@ -40,28 +43,28 @@ namespace BiblioBackend.Services
                     StartDate = loan.StartDate,
                     ExpectedEndDate = loan.ExpectedEndDate,
                     ReturnDate = loan.ReturnDate
-                })
-                .ToListAsync();
+                });
         }
 
         public async Task<List<LoanGetDTO>?> GetLoansByUserIdAsync(string userEmail)
         {
             _logger.LogInformation("Retrieving loans for user {Email}", userEmail);
-            var loans = await _context.Loans
-                .Where(l => l.UserEmail == userEmail)
-                .Select(loan => new LoanGetDTO
-                {
-                    Id = loan.Id,
-                    UserEmail = loan.UserEmail,
-                    BookId = loan.BookId,
-                    Extensions = loan.Extensions,
-                    StartDate = loan.StartDate,
-                    ExpectedEndDate = loan.ExpectedEndDate,
-                    ReturnDate = loan.ReturnDate
-                })
-                .ToListAsync();
+            var loans = _context.Loans.Where(l => l.UserEmail == userEmail);
+            if(!loans.Any())
+                return null;
 
-            return loans.Any() ? loans : null;
+            var selectedLoans = (await loans.ToListAsync()).ConvertAll(loan => new LoanGetDTO
+            {
+                Id = loan.Id,
+                UserEmail = loan.UserEmail,
+                BookId = loan.BookId,
+                Extensions = loan.Extensions,
+                StartDate = loan.StartDate,
+                ExpectedEndDate = loan.ExpectedEndDate,
+                ReturnDate = loan.ReturnDate
+            });
+
+            return selectedLoans;
         }
 
         public async Task<LoanGetDTO> CreateLoanAsync(LoanPostDTO loanDto, string userEmail)
@@ -116,8 +119,7 @@ namespace BiblioBackend.Services
             }
 
             // Validate user permission
-            var userService = new UserService(_context, null, null, null); // Temporary workaround
-            var isAdminOrLibrarian = await UserServiceGeneral.CheckIsUserPermittedAsync(userService, userEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            var isAdminOrLibrarian = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (!isAdminOrLibrarian && loanToUpdate.UserEmail != userEmail)
             {
                 _logger.LogWarning("User {Email} cannot update loan {Id} belonging to another user", userEmail, id);
@@ -161,8 +163,7 @@ namespace BiblioBackend.Services
                 return false;
             }
 
-            var userService = new UserService(_context, null, null, null); // Temporary workaround
-            var isAdminOrLibrarian = await UserServiceGeneral.CheckIsUserPermittedAsync(userService, userEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+            var isAdminOrLibrarian = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, userEmail, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (!isAdminOrLibrarian && loan.UserEmail != userEmail)
             {
                 _logger.LogWarning("User {Email} cannot delete loan {Id} belonging to another user", userEmail, id);

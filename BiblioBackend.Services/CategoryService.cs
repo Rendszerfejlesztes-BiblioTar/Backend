@@ -33,7 +33,7 @@ namespace BiblioBackend.Services
                 .Select(category => new CategoryGetDto
                 {
                     Id = category.Id,
-                    Name = category.Name
+                    Name = category.Name ?? ""
                 })
                 .ToListAsync();
         }
@@ -46,7 +46,7 @@ namespace BiblioBackend.Services
                 .Select(c => new CategoryGetDto
                 {
                     Id = c.Id,
-                    Name = c.Name
+                    Name = c.Name ?? ""
                 })
                 .FirstOrDefaultAsync();
 

@@ -1,6 +1,5 @@
 ﻿using BiblioBackend.DataContext.Entities;
 using BiblioBackend.Services;
-using System.Threading.Tasks;
 
 namespace BiblioBackend
 {
@@ -43,7 +42,7 @@ namespace BiblioBackend
         /// <returns>True if the user has one of the required privileges; otherwise, false.</returns>
         public static async Task<bool> CheckIsUserPermittedAsync(IUserService userService, string email, params PrivilegeLevel[] neededPrivileges)
         {
-            if (string.IsNullOrEmpty(email) || neededPrivileges == null || neededPrivileges.Length == 0)
+            if (string.IsNullOrEmpty(email) || neededPrivileges.Length == 0)
                 return false;
 
             try

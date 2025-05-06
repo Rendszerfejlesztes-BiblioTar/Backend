@@ -12,7 +12,7 @@ namespace BiblioBackend.Services
     {
         Task<List<ReservationGetDTO>> GetAllReservationsAsync();
         Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email);
-        Task<ReservationDetailDto> GetAllInfoForReservationAsync(int id);
+        Task<ReservationDetailDto?> GetAllInfoForReservationAsync(int id);
         Task<ReservationGetDTO> CreateReservationAsync(ReservationPostDTO reservation, string userEmail);
         Task<ReservationGetDTO> UpdateReservationAsync(int id, ReservationPatchDTO reservation, string userEmail);
         Task<bool> DeleteReservationAsync(int id, string userEmail);
@@ -70,8 +70,8 @@ namespace BiblioBackend.Services
         {
             _logger.LogInformation("Retrieving details for reservation {Id}", id);
             var reservation = await _dbContext.Reservations
-                .Include(r => r.Book)
-                .Include(r => r.User)
+                .Include(r => r.Book).ThenInclude(book => book.Author)
+                .Include(r => r.User).Include(reservation => reservation.Book).ThenInclude(book => book.Category)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (reservation == null)
@@ -85,25 +85,25 @@ namespace BiblioBackend.Services
                 Id = reservation.Id,
                 Book = new BookGetDTO
                 {
-                    Id = reservation.Book.Id,
-                    Title = reservation.Book.Title,
-                    AuthorId = reservation.Book.AuthorId,
-                    AuthorName = reservation.Book.Author != null ? reservation.Book.Author.Name : null,
-                    CategoryId = reservation.Book.CategoryId,
-                    CategoryName = reservation.Book.Category != null ? reservation.Book.Category.Name : null,
-                    Description = reservation.Book.Description,
-                    IsAvailable = reservation.Book.IsAvailable,
-                    NumberInLibrary = reservation.Book.NumberInLibrary,
-                    BookQuality = reservation.Book.BookQuality
+                    Id = reservation.Book?.Id ?? 0,
+                    Title = reservation.Book?.Title ?? "",
+                    AuthorId = reservation.Book?.AuthorId ?? 0,
+                    AuthorName = reservation.Book?.Author?.Name,
+                    CategoryId = reservation.Book?.CategoryId ?? 0,
+                    CategoryName = reservation.Book?.Category?.Name,
+                    Description = reservation.Book?.Description,
+                    IsAvailable = reservation.Book?.IsAvailable ?? false,
+                    NumberInLibrary = reservation.Book?.NumberInLibrary,
+                    BookQuality = reservation.Book?.BookQuality ?? BookQuality.Poor
                 },
                 User = new UserDto
                 {
-                    Email = reservation.User.Email,
-                    FirstName = reservation.User.FirstName,
-                    LastName = reservation.User.LastName,
-                    Phone = reservation.User.Phone,
-                    Address = reservation.User.Address,
-                    Privilege = reservation.User.Privilege
+                    Email = reservation.User?.Email ?? "",
+                    FirstName = reservation.User?.FirstName,
+                    LastName = reservation.User?.LastName,
+                    Phone = reservation.User?.Phone,
+                    Address = reservation.User?.Address,
+                    Privilege = reservation.User?.Privilege ?? PrivilegeLevel.UnRegistered
                 },
                 IsAccepted = reservation.IsAccepted,
                 ReservationDate = reservation.ReservationDate,

@@ -1,11 +1,6 @@
 ﻿using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BiblioBackend.DataContext.Dtos.Author;  
 
 namespace BiblioBackend.Services
@@ -33,7 +28,7 @@ namespace BiblioBackend.Services
                 .Select(author => new AuthorGetDto
                 {
                     Id = author.Id,
-                    Name = author.Name
+                    Name = author.Name ?? ""
                 })
                 .ToListAsync();
         }
@@ -45,7 +40,7 @@ namespace BiblioBackend.Services
                 .Select(a => new AuthorGetDto
                 {
                     Id = a.Id,
-                    Name = a.Name
+                    Name = a.Name ?? ""
                 })
                 .FirstOrDefaultAsync();
 

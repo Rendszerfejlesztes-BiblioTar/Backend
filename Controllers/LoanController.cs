@@ -11,30 +11,31 @@ namespace BiblioBackend.Controllers
     [Route("api/[controller]")]
     public class LoanController : ControllerBase
     {
-        private readonly ILoanService _service;
+        private readonly ILoanService _loanService;
         private readonly IUserService _userService;
 
         public LoanController(ILoanService loanService, IUserService userService)
         {
-            _service = loanService;
+            _loanService = loanService;
             _userService = userService;
         }
 
         private ObjectResult NotLoggedIn => Unauthorized("Nem vagy bejelentkezve!");
         private ObjectResult NoPermission => Unauthorized("Nincs jogosultságod ehhez!");
         private ObjectResult MissingLoan => NotFound("A kért kölcsön nem létezik!");
+        private ObjectResult MissingLoans => NotFound("A felhasználó kölcsönjei nem léteznek!");
 
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllLoans()
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
             var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
             if (!hasPermission) return NoPermission;
 
-            var loans = await _service.GetAllLoansAsync();
+            var loans = await _loanService.GetAllLoansAsync();
             return Ok(loans);
         }
 
@@ -42,13 +43,14 @@ namespace BiblioBackend.Controllers
         [HttpGet("{userEmail}")]
         public async Task<IActionResult> GetLoansById(string userEmail)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(email) || email != userEmail) return NotLoggedIn;
 
             var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (!hasPermission) return NoPermission;
 
-            var loans = await _service.GetLoansByUserIdAsync(userEmail);
+            var loans = await _loanService.GetLoansByUserIdAsync(userEmail);
+            if (loans == null) return MissingLoans;
             return Ok(loans);
         }
 
@@ -56,13 +58,13 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateLoan([FromBody] LoanPostDTO loanDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
             var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (!hasPermission) return NoPermission;
 
-            var loan = await _service.CreateLoanAsync(loanDto, email); // Pass email for UserEmail
+            var loan = await _loanService.CreateLoanAsync(loanDto, email); // Pass email for UserEmail
             return CreatedAtAction(nameof(GetLoansById), new { userEmail = email }, loan);
         }
 
@@ -70,13 +72,13 @@ namespace BiblioBackend.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateLoan(int id, [FromBody] LoanPatchDto patchDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
             var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (!hasPermission) return NoPermission;
 
-            var newLoan = await _service.UpdateLoanAsync(id, patchDto, email); // Pass email for validation/auditing
+            var newLoan = await _loanService.UpdateLoanAsync(id, patchDto, email); // Pass email for validation/auditing
             if (newLoan == null) return MissingLoan;
             return Ok(newLoan);
         }
@@ -91,7 +93,7 @@ namespace BiblioBackend.Controllers
             var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
             if (!hasPermission) return NoPermission;
 
-            var result = await _service.DeleteLoanAsync(id, email); // Pass email for validation/auditing
+            var result = await _loanService.DeleteLoanAsync(id, email); // Pass email for validation/auditing
             if (!result) return MissingLoan;
             return Ok(result);
         }
