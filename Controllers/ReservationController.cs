@@ -101,7 +101,7 @@ namespace BiblioBackend.Controllers
                 var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
                 if (!hasPermission) return NoPermission;
 
-                var result = await _reservationService.CreateReservationAsync(reservation, email); // Pass email for UserEmail
+                var result = await _reservationService.CreateReservationAsync(reservation);
                 return Ok(result);
             }
             catch (Exception e)

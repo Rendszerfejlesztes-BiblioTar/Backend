@@ -9,6 +9,7 @@ namespace BiblioBackend.DataContext.Dtos.Loan
     public class LoanGetDto
     {
         public int Id { get; set; }
+        public string UserEmail { get; set; }
         public int BookId { get; set; }
         public int Extensions { get; set; }
         public DateTime StartDate { get; set; }

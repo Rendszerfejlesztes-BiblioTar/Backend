@@ -11,7 +11,7 @@ namespace BiblioBackend.Services
     {
         Task<List<LoanGetDto>> GetAllLoansAsync();
         Task<List<LoanGetDto>?> GetLoansByUserIdAsync(string userEmail);
-        Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto, string userEmail);
+        Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto);
         Task<LoanGetDto?> UpdateLoanAsync(int id, LoanPatchDto loanDto, string userEmail);
         Task<bool> DeleteLoanAsync(int id, string userEmail);
     }
@@ -38,6 +38,7 @@ namespace BiblioBackend.Services
                 {
                     Id = loan.Id,
                     BookId = loan.BookId,
+                    UserEmail = loan.UserEmail,
                     Extensions = loan.Extensions,
                     StartDate = loan.StartDate,
                     ExpectedEndDate = loan.ExpectedEndDate,
@@ -55,6 +56,7 @@ namespace BiblioBackend.Services
             var selectedLoans = (await loans.ToListAsync()).ConvertAll(loan => new LoanGetDto
             {
                 Id = loan.Id,
+                UserEmail = loan.UserEmail,
                 BookId = loan.BookId,
                 Extensions = loan.Extensions,
                 StartDate = loan.StartDate,
@@ -65,9 +67,9 @@ namespace BiblioBackend.Services
             return selectedLoans;
         }
 
-        public async Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto, string userEmail)
+        public async Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto)
         {
-            _logger.LogInformation("Creating loan for user {Email}", userEmail);
+            _logger.LogInformation("Creating loan for user {Email}", loanDto.UserEmail);
 
             // Validate book availability
             var book = await _context.Books.FindAsync(loanDto.BookId);
@@ -79,7 +81,7 @@ namespace BiblioBackend.Services
 
             var newLoan = new Loan
             {
-                UserEmail = userEmail,
+                UserEmail = loanDto.UserEmail,
                 BookId = loanDto.BookId,
                 StartDate = loanDto.StartTime,
                 ExpectedEndDate = loanDto.StartTime.AddDays(14)
@@ -89,11 +91,12 @@ namespace BiblioBackend.Services
             book.IsAvailable = false;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Loan created for user {Email}, book {BookId}", userEmail, loanDto.BookId);
+            _logger.LogInformation("Loan created for user {Email}, book {BookId}", loanDto.UserEmail, loanDto.BookId);
 
             return new LoanGetDto
             {
                 Id = newLoan.Id,
+                UserEmail = newLoan.UserEmail,
                 BookId = newLoan.BookId,
                 Extensions = newLoan.Extensions,
                 StartDate = newLoan.StartDate,
@@ -142,6 +145,7 @@ namespace BiblioBackend.Services
             {
                 Id = loanToUpdate.Id,
                 BookId = loanToUpdate.BookId,
+                UserEmail = loanToUpdate.UserEmail,
                 Extensions = loanToUpdate.Extensions,
                 StartDate = loanToUpdate.StartDate,
                 ExpectedEndDate = loanToUpdate.ExpectedEndDate,

@@ -80,7 +80,7 @@ namespace BiblioBackend.Controllers
                 var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian, PrivilegeLevel.Registered);
                 if (!hasPermission) return NoPermission;
 
-                var loan = await _loanService.CreateLoanAsync(loanDto, email); // Pass email for UserEmail
+                var loan = await _loanService.CreateLoanAsync(loanDto);
                 return CreatedAtAction(nameof(GetLoansById), new { userEmail = email }, loan);
             }
             catch (Exception e)
