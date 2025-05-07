@@ -265,13 +265,13 @@ namespace BiblioBackend.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
-        public async Task<IActionResult> GetAllRegisteredUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
             try
             {
-                var result = await _userService.GetAllRegisteredUsersAsync();
+                var result = await _userService.GetAllUsersAsync();
                 if (result.Count <= 0)
-                    return NotFound(new ApiResponse<bool> { Error = $"No registered users have been found!" });
+                    return NotFound(new ApiResponse<bool> { Error = $"No users have been found!" });
                 return Ok(new ApiResponse<List<UserDto>> { Data = result });
             }
             catch (Exception ex)
