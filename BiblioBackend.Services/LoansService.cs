@@ -3,16 +3,17 @@ using BiblioBackend.DataContext.Entities;
 using BiblioBackend.DataContext.Dtos.Loan;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http.HttpResults;
 using BiblioBackend.BiblioBackend.DataContext.Entities;
 
 namespace BiblioBackend.Services
 {
     public interface ILoanService
     {
-        Task<List<LoanGetDTO>> GetAllLoansAsync();
-        Task<List<LoanGetDTO>?> GetLoansByUserIdAsync(string userEmail);
-        Task<LoanGetDTO> CreateLoanAsync(LoanPostDTO loanDto, string userEmail);
-        Task<LoanGetDTO> UpdateLoanAsync(int id, LoanPatchDto loanDto, string userEmail);
+        Task<List<LoanGetDto>> GetAllLoansAsync();
+        Task<List<LoanGetDto>?> GetLoansByUserIdAsync(string userEmail);
+        Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto);
+        Task<LoanGetDto?> UpdateLoanAsync(int id, LoanPatchDto loanDto, string userEmail);
         Task<bool> DeleteLoanAsync(int id, string userEmail);
     }
 
@@ -21,7 +22,6 @@ namespace BiblioBackend.Services
         private readonly AppDbContext _context;
         private readonly ILogger<LoanService> _logger;
         private readonly IUserService _userService; // Added for permission checks
-
         public LoanService(AppDbContext context, ILogger<LoanService> logger, IUserService userService)
         {
             _context = context;
@@ -29,46 +29,47 @@ namespace BiblioBackend.Services
             _userService = userService;
         }
 
-        public async Task<List<LoanGetDTO>> GetAllLoansAsync()
+        public async Task<List<LoanGetDto>> GetAllLoansAsync()
         {
             _logger.LogInformation("Retrieving all loans");
-            return await _context.Loans
-                .Select(loan => new LoanGetDTO
+            var loanList = await _context.Loans.ToListAsync();
+            
+            return loanList.ConvertAll(loan => new LoanGetDto()
                 {
                     Id = loan.Id,
-                    UserEmail = loan.UserEmail,
                     BookId = loan.BookId,
+                    UserEmail = loan.UserEmail,
                     Extensions = loan.Extensions,
                     StartDate = loan.StartDate,
                     ExpectedEndDate = loan.ExpectedEndDate,
                     ReturnDate = loan.ReturnDate
-                })
-                .ToListAsync();
+                });
         }
 
-        public async Task<List<LoanGetDTO>?> GetLoansByUserIdAsync(string userEmail)
+        public async Task<List<LoanGetDto>?> GetLoansByUserIdAsync(string userEmail)
         {
             _logger.LogInformation("Retrieving loans for user {Email}", userEmail);
-            var loans = await _context.Loans
-                .Where(l => l.UserEmail == userEmail)
-                .Select(loan => new LoanGetDTO
-                {
-                    Id = loan.Id,
-                    UserEmail = loan.UserEmail,
-                    BookId = loan.BookId,
-                    Extensions = loan.Extensions,
-                    StartDate = loan.StartDate,
-                    ExpectedEndDate = loan.ExpectedEndDate,
-                    ReturnDate = loan.ReturnDate
-                })
-                .ToListAsync();
+            var loans = _context.Loans.Where(l => l.UserEmail == userEmail);
+            if(!loans.Any())
+                return null;
 
-            return loans.Any() ? loans : null;
+            var selectedLoans = (await loans.ToListAsync()).ConvertAll(loan => new LoanGetDto
+            {
+                Id = loan.Id,
+                UserEmail = loan.UserEmail,
+                BookId = loan.BookId,
+                Extensions = loan.Extensions,
+                StartDate = loan.StartDate,
+                ExpectedEndDate = loan.ExpectedEndDate,
+                ReturnDate = loan.ReturnDate
+            });
+
+            return selectedLoans;
         }
 
-        public async Task<LoanGetDTO> CreateLoanAsync(LoanPostDTO loanDto, string userEmail)
+        public async Task<LoanGetDto> CreateLoanAsync(LoanPostDto loanDto)
         {
-            _logger.LogInformation("Creating loan for user {Email}", userEmail);
+            _logger.LogInformation("Creating loan for user {Email}", loanDto.UserEmail);
 
             var book = await _context.Books.FindAsync(loanDto.BookId);
             if (book == null)
@@ -84,7 +85,7 @@ namespace BiblioBackend.Services
 
             var newLoan = new Loan
             {
-                UserEmail = userEmail,
+                UserEmail = loanDto.UserEmail,
                 BookId = loanDto.BookId,
                 StartDate = loanDto.StartTime,
                 ExpectedEndDate = loanDto.StartTime.AddDays(14)
@@ -94,9 +95,9 @@ namespace BiblioBackend.Services
             book.IsAvailable = false;
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Loan created for user {Email}, book {BookId}", userEmail, loanDto.BookId);
+            _logger.LogInformation("Loan created for user {Email}, book {BookId}", loanDto.UserEmail, loanDto.BookId);
 
-            return new LoanGetDTO
+            return new LoanGetDto
             {
                 Id = newLoan.Id,
                 UserEmail = newLoan.UserEmail,
@@ -108,7 +109,7 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<LoanGetDTO> UpdateLoanAsync(int id, LoanPatchDto loanDto, string userEmail)
+        public async Task<LoanGetDto?> UpdateLoanAsync(int id, LoanPatchDto loanDto, string userEmail)
         {
             _logger.LogInformation("Updating loan {Id} by {Email}", id, userEmail);
             var loanToUpdate = await _context.Loans
@@ -164,11 +165,11 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("Loan {Id} updated by {Email}", id, userEmail);
 
-            return new LoanGetDTO
+            return new LoanGetDto
             {
                 Id = loanToUpdate.Id,
-                UserEmail = loanToUpdate.UserEmail,
                 BookId = loanToUpdate.BookId,
+                UserEmail = loanToUpdate.UserEmail,
                 Extensions = loanToUpdate.Extensions,
                 StartDate = loanToUpdate.StartDate,
                 ExpectedEndDate = loanToUpdate.ExpectedEndDate,

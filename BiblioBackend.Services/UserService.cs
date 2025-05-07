@@ -2,34 +2,31 @@ using BiblioBackend.DataContext.Context;
 using BiblioBackend.DataContext.Dtos;
 using BiblioBackend.DataContext.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
-using System;
-using System.Threading.Tasks;
 using BiblioBackend.BiblioBackend.DataContext.Dtos.User;
 using BiblioBackend.DataContext.Dtos.User.Post;
 using BiblioBackend.DataContext.Dtos.User;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace BiblioBackend.Services
 {
     public interface IUserService
     {
         Task<UserDto> RegisterUserAsync(UserLoginValuesDto userDto);
-        Task<DefaultAdminDto> CreateDefaultAdmin();
+        Task<DefaultAdminDto?> CreateDefaultAdmin();
         Task<UserLoginDto> AuthenticateUserAsync(UserLoginValuesDto userDto);
         Task<UserLoginDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> RevokeTokenAsync(string email);
         Task<UserDto> GetUserAsync(string email);
         Task<List<UserDto>> GetAllUsersAsync();
         Task<bool> UpdateUserContactAsync(UserModifyContactDto userDto);
-        Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userDto);
+        Task<bool> UpdateUserLoginAsync(string email, UserModifyLoginDto userDto);
         Task<bool> UpdateUserPrivilegeAsync(UserModifyPrivilegeDto userDto);
         Task<bool> DeleteUserAsync(string email);
         Task<bool> GetUserIsExistsAsync(string email);
@@ -154,7 +151,7 @@ namespace BiblioBackend.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"]));
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"] ?? ""));
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("User authenticated successfully: {Email}", userDto.Email);
@@ -163,7 +160,7 @@ namespace BiblioBackend.Services
             {
                 AccessToken = token,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"] ?? "")),
                 User = new UserDto()
                 {
                     Address = user.Address,
@@ -197,7 +194,7 @@ namespace BiblioBackend.Services
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"]));
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["Jwt:RefreshTokenLifetimeDays"] ?? ""));
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Token refreshed successfully for user: {Email}", user.Email);
@@ -206,7 +203,7 @@ namespace BiblioBackend.Services
             {
                 AccessToken = token,
                 RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"]))
+                ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"] ?? ""))
             };
         }
 
@@ -308,41 +305,34 @@ namespace BiblioBackend.Services
             return true;
         }
 
-        public async Task<bool> UpdateUserLoginAsync(UserModifyLoginDto userDto)
+        public async Task<bool> UpdateUserLoginAsync(string email, UserModifyLoginDto userDto)
         {
-            if (userDto == null || string.IsNullOrEmpty(userDto.OldEmail) || string.IsNullOrEmpty(userDto.NewEmail))
+            if (userDto == null)
             {
                 _logger.LogWarning("Login update failed: Invalid input data");
-                throw new ArgumentException("Old and new email are required.");
+                throw new ArgumentException("Login update failed: Invalid input data.");
             }
 
-            _logger.LogInformation("Attempting to update login info for user: {OldEmail}", userDto.OldEmail);
+            _logger.LogInformation("Attempting to update login info for user: {email}", email);
 
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userDto.OldEmail);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                _logger.LogWarning("Login update failed: User {OldEmail} not found", userDto.OldEmail);
-                throw new KeyNotFoundException($"User with email {userDto.OldEmail} not found.");
+                _logger.LogWarning("Login update failed: User {email} not found", email);
+                throw new KeyNotFoundException($"User with email {email} not found.");
             }
 
-            if (await _dbContext.Users.AnyAsync(u => u.Email == userDto.NewEmail && u.Email != userDto.OldEmail))
-            {
-                _logger.LogWarning("Login update failed: New email {NewEmail} already in use", userDto.NewEmail);
-                throw new InvalidOperationException("New email is already in use.");
-            }
-
-            user.Email = userDto.NewEmail;
             if (!string.IsNullOrEmpty(userDto.NewPassword))
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.NewPassword);
 
             try
             {
                 await _dbContext.SaveChangesAsync();
-                _logger.LogInformation("Login info updated successfully for user: {NewEmail}", userDto.NewEmail);
+                _logger.LogInformation("Login info updated successfully for user: {email}", email);
             }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("IX_Users_Email") == true)
+            catch (DbUpdateException ex)
             {
-                _logger.LogWarning("Login update failed: New email {NewEmail} already in use (DB constraint)", userDto.NewEmail);
+                _logger.LogWarning("Login update failed: New email {email} already in use (DB constraint), " + ex.Message, email);
                 throw new InvalidOperationException("New email is already in use.");
             }
 
@@ -484,7 +474,7 @@ namespace BiblioBackend.Services
                 throw new ArgumentException("User data is required.");
             }
 
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "");
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
@@ -498,7 +488,7 @@ namespace BiblioBackend.Services
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"])),
+                expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:AccessTokenLifetimeMinutes"] ?? "")),
                 signingCredentials: creds);
 
             _logger.LogInformation("JWT generated successfully for user: {Email}", user.Email);
@@ -508,13 +498,11 @@ namespace BiblioBackend.Services
         private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                var refreshToken = Convert.ToBase64String(randomNumber);
-                _logger.LogInformation("Refresh token generated");
-                return refreshToken;
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            var refreshToken = Convert.ToBase64String(randomNumber);
+            _logger.LogInformation("Refresh token generated");
+            return refreshToken;
         }
     }
 }

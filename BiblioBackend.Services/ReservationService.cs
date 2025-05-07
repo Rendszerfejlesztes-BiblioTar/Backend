@@ -10,11 +10,11 @@ namespace BiblioBackend.Services
 {
     public interface IReservationService
     {
-        Task<List<ReservationGetDTO>> GetAllReservationsAsync();
-        Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email);
-        Task<ReservationDetailDto> GetAllInfoForReservationAsync(int id);
-        Task<ReservationGetDTO> CreateReservationAsync(ReservationPostDTO reservation, string userEmail);
-        Task<ReservationGetDTO> UpdateReservationAsync(int id, ReservationPatchDTO reservation, string userEmail);
+        Task<List<ReservationGetDto>> GetAllReservationsAsync();
+        Task<List<ReservationGetDto>> GetUsersReservationsAsync(string email);
+        Task<ReservationDetailDto?> GetAllInfoForReservationAsync(int id);
+        Task<ReservationGetDto> CreateReservationAsync(ReservationPostDto reservation);
+        Task<ReservationGetDto> UpdateReservationAsync(int id, ReservationPatchDto reservation, string userEmail);
         Task<bool> DeleteReservationAsync(int id, string userEmail);
     }
 
@@ -31,11 +31,11 @@ namespace BiblioBackend.Services
             _userService = userService;
         }
 
-        public async Task<List<ReservationGetDTO>> GetAllReservationsAsync()
+        public async Task<List<ReservationGetDto>> GetAllReservationsAsync()
         {
             _logger.LogInformation("Retrieving all reservations");
             return await _dbContext.Reservations
-                .Select(res => new ReservationGetDTO
+                .Select(res => new ReservationGetDto
                 {
                     Id = res.Id,
                     BookId = res.BookId,
@@ -48,12 +48,12 @@ namespace BiblioBackend.Services
                 .ToListAsync();
         }
 
-        public async Task<List<ReservationGetDTO>> GetUsersReservationsAsync(string email)
+        public async Task<List<ReservationGetDto>> GetUsersReservationsAsync(string email)
         {
             _logger.LogInformation("Retrieving reservations for user {Email}", email);
             return await _dbContext.Reservations
                 .Where(res => res.UserEmail == email)
-                .Select(res => new ReservationGetDTO
+                .Select(res => new ReservationGetDto
                 {
                     Id = res.Id,
                     BookId = res.BookId,
@@ -70,8 +70,8 @@ namespace BiblioBackend.Services
         {
             _logger.LogInformation("Retrieving details for reservation {Id}", id);
             var reservation = await _dbContext.Reservations
-                .Include(r => r.Book)
-                .Include(r => r.User)
+                .Include(r => r.Book).ThenInclude(book => book.Author)
+                .Include(r => r.User).Include(reservation => reservation.Book).ThenInclude(book => book.Category)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (reservation == null)
@@ -83,27 +83,27 @@ namespace BiblioBackend.Services
             return new ReservationDetailDto
             {
                 Id = reservation.Id,
-                Book = new BookGetDTO
+                Book = new BookGetDto
                 {
-                    Id = reservation.Book.Id,
-                    Title = reservation.Book.Title,
-                    AuthorId = reservation.Book.AuthorId,
-                    AuthorName = reservation.Book.Author != null ? reservation.Book.Author.Name : null,
-                    CategoryId = reservation.Book.CategoryId,
-                    CategoryName = reservation.Book.Category != null ? reservation.Book.Category.Name : null,
-                    Description = reservation.Book.Description,
-                    IsAvailable = reservation.Book.IsAvailable,
-                    NumberInLibrary = reservation.Book.NumberInLibrary,
-                    BookQuality = reservation.Book.BookQuality
+                    Id = reservation.Book?.Id ?? 0,
+                    Title = reservation.Book?.Title ?? "",
+                    AuthorId = reservation.Book?.AuthorId ?? 0,
+                    AuthorName = reservation.Book?.Author?.Name,
+                    CategoryId = reservation.Book?.CategoryId ?? 0,
+                    CategoryName = reservation.Book?.Category?.Name,
+                    Description = reservation.Book?.Description,
+                    IsAvailable = reservation.Book?.IsAvailable ?? false,
+                    NumberInLibrary = reservation.Book?.NumberInLibrary,
+                    BookQuality = reservation.Book?.BookQuality ?? BookQuality.Poor
                 },
                 User = new UserDto
                 {
-                    Email = reservation.User.Email,
-                    FirstName = reservation.User.FirstName,
-                    LastName = reservation.User.LastName,
-                    Phone = reservation.User.Phone,
-                    Address = reservation.User.Address,
-                    Privilege = reservation.User.Privilege
+                    Email = reservation.User?.Email ?? "",
+                    FirstName = reservation.User?.FirstName,
+                    LastName = reservation.User?.LastName,
+                    Phone = reservation.User?.Phone,
+                    Address = reservation.User?.Address,
+                    Privilege = reservation.User?.Privilege ?? PrivilegeLevel.UnRegistered
                 },
                 IsAccepted = reservation.IsAccepted,
                 ReservationDate = reservation.ReservationDate,
@@ -112,9 +112,9 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<ReservationGetDTO> CreateReservationAsync(ReservationPostDTO reservation, string userEmail)
+        public async Task<ReservationGetDto> CreateReservationAsync(ReservationPostDto reservation)
         {
-            _logger.LogInformation("Creating reservation for user {Email}", userEmail);
+            _logger.LogInformation("Creating reservation for user {Email}", reservation.UserEmail);
 
             // Validate book existence
             var book = await _dbContext.Books.FindAsync(reservation.BookId);
@@ -127,7 +127,7 @@ namespace BiblioBackend.Services
             var newReservation = new Reservation
             {
                 BookId = reservation.BookId,
-                UserEmail = userEmail,
+                UserEmail = reservation.UserEmail,
                 IsAccepted = reservation.IsAccepted,
                 ReservationDate = reservation.ReservationDate,
                 ExpectedStart = reservation.ExpectedStart,
@@ -137,13 +137,13 @@ namespace BiblioBackend.Services
             _dbContext.Reservations.Add(newReservation);
             await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Reservation created for user {Email}, book {BookId}", userEmail, reservation.BookId);
+            _logger.LogInformation("Reservation created for user {Email}, book {BookId}", reservation.UserEmail, reservation.BookId);
 
-            return new ReservationGetDTO
+            return new ReservationGetDto
             {
                 Id = newReservation.Id,
-                UserEmail = newReservation.UserEmail,
                 BookId = newReservation.BookId,
+                UserEmail = newReservation.UserEmail,
                 IsAccepted = newReservation.IsAccepted,
                 ReservationDate = newReservation.ReservationDate,
                 ExpectedStart = newReservation.ExpectedStart,
@@ -151,7 +151,7 @@ namespace BiblioBackend.Services
             };
         }
 
-        public async Task<ReservationGetDTO> UpdateReservationAsync(int id, ReservationPatchDTO reservation, string userEmail)
+        public async Task<ReservationGetDto> UpdateReservationAsync(int id, ReservationPatchDto reservation, string userEmail)
         {
             _logger.LogInformation("Updating reservation {Id} by {Email}", id, userEmail);
             var reservationToUpdate = await _dbContext.Reservations.FindAsync(id);
@@ -180,11 +180,11 @@ namespace BiblioBackend.Services
 
             _logger.LogInformation("Reservation {Id} updated by {Email}", id, userEmail);
 
-            return new ReservationGetDTO
+            return new ReservationGetDto
             {
                 Id = reservationToUpdate.Id,
-                UserEmail = reservationToUpdate.UserEmail,
                 BookId = reservationToUpdate.BookId,
+                UserEmail = reservationToUpdate.UserEmail,
                 IsAccepted = reservationToUpdate.IsAccepted,
                 ReservationDate = reservationToUpdate.ReservationDate,
                 ExpectedStart = reservationToUpdate.ExpectedStart,

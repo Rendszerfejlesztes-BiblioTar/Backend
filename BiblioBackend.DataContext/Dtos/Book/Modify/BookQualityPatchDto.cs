@@ -7,10 +7,9 @@ using BiblioBackend.DataContext.Entities;
 
 namespace BiblioBackend.DataContext.Dtos.Book.Modify
 {
-    public class BookQualityPatchDTO
+    public class BookQualityPatchDto
     {
         public int Id { get; set; }
         public BookQuality BookQuality { get; set; }
-        public string Email { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace BiblioBackend.DataContext.Dtos.Reservation
     public class ReservationDetailDto
     {
         public int Id { get; set; }
-        public BookGetDTO? Book { get; set; }
+        public BookGetDto? Book { get; set; }
         public UserDto? User { get; set; }
         public bool IsAccepted { get; set; }
         public DateTime ReservationDate { get; set; } = DateTime.UtcNow;

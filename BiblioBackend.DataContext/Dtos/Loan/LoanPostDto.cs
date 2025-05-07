@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace BiblioBackend.DataContext.Dtos.Loan
 {
-    public class LoanPostDTO
-
+    public class LoanPostDto
     {
         public int BookId { get; set; }
+        public string UserEmail { get; set; }
         public DateTime StartTime { get; set; }
     }
 }

@@ -27,60 +27,95 @@ namespace BiblioBackend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            return Ok(categories);
+            try
+            {
+                var categories = await _categoryService.GetAllCategoriesAsync();
+                return Ok(categories);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-            if (category == null) return MissingCategory;
-            return Ok(category);
+            try
+            {
+                var category = await _categoryService.GetCategoryByIdAsync(id);
+                if (category == null) return MissingCategory;
+                return Ok(category);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryModifyDto categoryDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission) return NoPermission;
 
-            var newCategory = await _categoryService.CreateCategoryAsync(categoryDto, email); // Pass email for auditing
-            return CreatedAtAction(nameof(GetCategoryById), new { id = newCategory.Id }, newCategory);
+                var newCategory = await _categoryService.CreateCategoryAsync(categoryDto, email); // Pass email for auditing
+                return CreatedAtAction(nameof(GetCategoryById), new { id = newCategory.Id }, newCategory);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryModifyDto categoryDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission) return NoPermission;
 
-            var newCategory = await _categoryService.UpdateCategoryAsync(id, categoryDto, email); // Pass email for auditing
-            if (newCategory == null) return MissingCategory;
-            return Ok(newCategory);
+                var newCategory = await _categoryService.UpdateCategoryAsync(id, categoryDto, email); // Pass email for auditing
+                if (newCategory == null) return MissingCategory;
+                return Ok(newCategory);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email)) return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email)) return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission) return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission) return NoPermission;
 
-            var result = await _categoryService.DeleteCategoryAsync(id, email); // Pass email for auditing
-            if (!result) return MissingCategory;
-            return Ok(result);
+                var result = await _categoryService.DeleteCategoryAsync(id, email); // Pass email for auditing
+                if (!result) return MissingCategory;
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

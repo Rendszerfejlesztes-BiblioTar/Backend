@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BiblioBackend.DataContext.Dtos.Book.Modify
 {
-    public class BookPatchDTO
+    public class BookPatchDto
     {
         public string? Title { get; set; }
         public int? AuthorId { get; set; }

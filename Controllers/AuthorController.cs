@@ -31,8 +31,15 @@ namespace BiblioBackend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAuthors()
         {
-            var authors = await _authorService.GetAllAuthorsAsync();
-            return Ok(authors);
+            try
+            {
+                var authors = await _authorService.GetAllAuthorsAsync();
+                return Ok(authors);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         /// <summary>
@@ -43,11 +50,18 @@ namespace BiblioBackend.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAuthorById(int id)
         {
-            var author = await _authorService.GetAuthorByIdAsync(id);
-            if (author == null)
-                return NoAuthor;
+            try
+            {
+                var author = await _authorService.GetAuthorByIdAsync(id);
+                if (author == null)
+                    return NoAuthor;
 
-            return Ok(author);
+                return Ok(author);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         /// <summary>
@@ -59,20 +73,27 @@ namespace BiblioBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAuthor([FromBody] AuthorModifyDto authorDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != authorDto.RequesterEmail)
-                return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email))
+                    return NotLoggedIn;
 
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
+                var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
+                if (!isAuthenticated)
+                    return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission)
-                return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission)
+                    return NoPermission;
 
-            var newAuthor = await _authorService.CreateAuthorAsync(authorDto);
-            return CreatedAtAction(nameof(GetAuthorById), new { id = newAuthor.Id }, newAuthor);
+                var newAuthor = await _authorService.CreateAuthorAsync(authorDto);
+                return CreatedAtAction(nameof(GetAuthorById), new { id = newAuthor.Id }, newAuthor);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         /// <summary>
@@ -85,52 +106,65 @@ namespace BiblioBackend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAuthor(int id, [FromBody] AuthorModifyDto authorDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != authorDto.RequesterEmail)
-                return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email))
+                    return NotLoggedIn;
 
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
+                var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
+                if (!isAuthenticated)
+                    return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission)
-                return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission)
+                    return NoPermission;
 
-            var newAuthor = await _authorService.UpdateAuthorAsync(id, authorDto);
-            if (newAuthor == null)
-                return NoAuthor;
+                var newAuthor = await _authorService.UpdateAuthorAsync(id, authorDto);
+                if (newAuthor == null)
+                    return NoAuthor;
 
-            return Ok(newAuthor);
+                return Ok(newAuthor);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         /// <summary>
         /// Delete the specified author
         /// </summary>
         /// <param name="id">The id of the author to delete</param>
-        /// <param name="authorPermissionRestrictedActionDto">dto containing extra information</param>
         /// <returns>True if deleted</returns>
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAuthor(int id, [FromBody] AuthorPermissionRestrictedActionDto authorPermissionRestrictedActionDto)
+        public async Task<IActionResult> DeleteAuthor(int id)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != authorPermissionRestrictedActionDto.RequesterEmail)
-                return NotLoggedIn;
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email))
+                    return NotLoggedIn;
 
-            var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
-            if (!isAuthenticated)
-                return NotLoggedIn;
+                var isAuthenticated = await UserServiceGeneral.CheckIsUserAuthenticatedAsync(_userService, email);
+                if (!isAuthenticated)
+                    return NotLoggedIn;
 
-            var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
-            if (!hasPermission)
-                return NoPermission;
+                var hasPermission = await UserServiceGeneral.CheckIsUserPermittedAsync(_userService, email, PrivilegeLevel.Admin, PrivilegeLevel.Librarian);
+                if (!hasPermission)
+                    return NoPermission;
 
-            var result = await _authorService.DeleteAuthorAsync(id);
-            if (!result)
-                return NoAuthor;
+                var result = await _authorService.DeleteAuthorAsync(id);
+                if (!result)
+                    return NoAuthor;
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

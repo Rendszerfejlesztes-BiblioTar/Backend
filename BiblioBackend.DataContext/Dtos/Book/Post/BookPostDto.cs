@@ -7,9 +7,9 @@ using BiblioBackend.DataContext.Entities;
 
 namespace BiblioBackend.DataContext.Dtos.Book.Post
 {
-    public class BookPostDTO
+    public class BookPostDto
     {
-        public string Title { get; set; }
+        public string Title { get; set; } = "";
         public int AuthorId { get; set; }
         public int CategoryId { get; set; }
         public string? Description { get; set; }

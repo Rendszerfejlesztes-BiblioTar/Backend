@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using BiblioBackend.DataContext.Entities;
 
 namespace BiblioBackend.Controllers
@@ -71,14 +70,14 @@ namespace BiblioBackend.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> CreateAdmin([FromBody] UserLoginValuesDto userDto)
         {
-            if (userDto == null || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
+            if (string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
             {
-                return BadRequest(new { data = (object)null, error = "Email and password are required.", success = false });
+                return BadRequest(new { data = new object(), error = "Email and password are required.", success = false });
             }
 
             if (await _userService.GetUserIsExistsAsync(userDto.Email))
             {
-                return Conflict(new { data = (object)null, error = "User already exists.", success = false });
+                return Conflict(new { data = new object(), error = "User already exists.", success = false });
             }
 
             var adminUser = new UserLoginValuesDto
@@ -95,7 +94,7 @@ namespace BiblioBackend.Controllers
                 NewPrivilege = PrivilegeLevel.Admin
             });
 
-            return Ok(new { data = user, error = (string)null, success = true });
+            return Ok(new { data = user, error = "", success = true });
         }
 
         [HttpPost("refresh")]
@@ -186,20 +185,20 @@ namespace BiblioBackend.Controllers
         }
 
         [Authorize(Policy = "UserAccess")]
-        [HttpPut("login")]
+        [HttpPut("changepassword")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiResponse<bool>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResponse<bool>))]
         public async Task<IActionResult> UpdateUserLogin([FromBody] UserModifyLoginDto userDto)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email) || email != userDto.OldEmail)
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
                 return Unauthorized(new ApiResponse<bool> { Error = "User is not authorized to update this login." });
 
             try
             {
-                var result = await _userService.UpdateUserLoginAsync(userDto);
+                var result = await _userService.UpdateUserLoginAsync(email, userDto);
                 return Ok(new ApiResponse<bool> { Data = result });
             }
             catch (KeyNotFoundException ex)

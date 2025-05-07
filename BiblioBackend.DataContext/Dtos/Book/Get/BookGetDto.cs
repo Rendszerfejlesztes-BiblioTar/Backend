@@ -2,7 +2,7 @@
 
 namespace BiblioBackend.DataContext.Dtos
 {
-    public class BookGetDTO
+    public class BookGetDto
     {
         public int Id { get; set; }
         public string? Title { get; set; }
