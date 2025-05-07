@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using BiblioBackend.DataContext.Dtos.Loan;
 using BiblioBackend.BiblioBackend.DataContext.Entities;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BiblioBackend.Services
 {
@@ -169,6 +170,15 @@ namespace BiblioBackend.Services
                 _logger.LogWarning("User {Email} cannot delete loan {Id} belonging to another user", userEmail, id);
                 throw new UnauthorizedAccessException("Cannot delete another user's loan.");
             }
+
+            var book = await _context.Books.FindAsync(loan.BookId);
+            if (book == null)
+            {
+                _logger.LogWarning("Didn't find book.");
+                return false;
+            }
+
+            book.IsAvailable = true;
 
             _context.Loans.Remove(loan);
             await _context.SaveChangesAsync();
